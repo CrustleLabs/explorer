@@ -19,7 +19,7 @@ export default function VerificationPage() {
 
       <Alert severity="info" sx={{mb: 4}}>
         <AlertTitle>Verification Overview</AlertTitle>
-        The Aptos Explorer supports multiple verification levels to help users
+        The Crustle Explorer supports multiple verification levels to help users
         identify legitimate tokens and addresses. This page explains how to get
         your tokens and addresses verified through the official channels.
       </Alert>
@@ -43,8 +43,8 @@ export default function VerificationPage() {
         </Alert>
 
         <Typography variant="body1" mb={2}>
-          To get your token verified on Aptos Explorer, you must be added to the
-          community-maintained Panora token list.
+          To get your token verified on Crustle Explorer, you must be added to
+          the community-maintained Panora token list.
         </Typography>
 
         <Typography variant="h6" component="h3" mt={3} mb={2}>
@@ -67,7 +67,7 @@ export default function VerificationPage() {
           2. Labs Verification (Manual Process)
         </Typography>
         <Typography variant="body1" mb={2}>
-          For special cases, tokens can be manually verified by the Aptos Labs
+          For special cases, tokens can be manually verified by the Crustle Labs
           team. This process is reserved for:
         </Typography>
         <Box component="ul" sx={{pl: 3, mb: 2}}>
@@ -87,7 +87,7 @@ export default function VerificationPage() {
           </li>
           <li>
             <strong>Labs Verified:</strong> Blue verified badge - Manually
-            verified by Aptos Labs
+            verified by Crustle Labs
           </li>
           <li>
             <strong>Community Verified:</strong> Blue outlined badge - Verified

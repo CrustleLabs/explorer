@@ -8,22 +8,22 @@ import LinkedInLogo from "../../assets/linkedin.svg?react";
 import {grey} from "../../themes/colors/aptosColorPalette";
 import SvgIcon from "@mui/material/SvgIcon";
 
-import LogoFullLight from "../../assets/svg/aptos_logo_full_light.svg?react";
-import LogoFullDark from "../../assets/svg/aptos_logo_full_dark.svg?react";
+import LogoFullLight from "../../assets/svg/crustle_logo_full_light.svg?react";
+import LogoFullDark from "../../assets/svg/crustle_logo_full_dark.svg?react";
 import {Link} from "../../routing";
 
 const socialLinks = [
-  {title: "Git", url: "https://github.com/aptos-labs", icon: GithubLogo},
+  {title: "Git", url: "https://github.com/CrustleLabs", icon: GithubLogo},
   {
     title: "Discord",
-    url: "https://discord.com/invite/aptosnetwork",
+    url: "",
     icon: DiscordLogo,
   },
-  {title: "Twitter", url: "https://x.com/aptoslabs/", icon: TwitterLogo},
-  {title: "Medium", url: "https://aptoslabs.medium.com/", icon: MediumLogo},
+  {title: "Twitter", url: "", icon: TwitterLogo},
+  {title: "Medium", url: "", icon: MediumLogo},
   {
     title: "LinkedIn",
-    url: "https://www.linkedin.com/company/aptoslabs/",
+    url: "",
     icon: LinkedInLogo,
   },
 ];
@@ -59,7 +59,7 @@ export default function Footer() {
               color="inherit"
               to="https://aptoslabs.com/"
               target="_blank"
-              title="Aptos Labs"
+              title="Crustle Labs"
               sx={{width: "8rem", mr: {md: 2}}}
             >
               {isDark ? (
@@ -81,7 +81,7 @@ export default function Footer() {
               >
                 © {new Date().getFullYear()}{" "}
                 <Box component="span" sx={{whiteSpace: "nowrap"}}>
-                  Aptos Labs
+                  Crustle Labs
                 </Box>
               </Typography>
               <Stack

@@ -12,7 +12,7 @@ export default function LandingPage() {
     <Box>
       <WalletDeprecationBanner />
       <Typography variant="h3" component="h3" marginBottom={4}>
-        Aptos Explorer
+        Crustle Explorer
       </Typography>
       <NetworkInfo isOnHomePage />
       <HeaderSearch />

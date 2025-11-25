@@ -25,7 +25,7 @@ verified by the Panora token list https://github.com/PanoraExchange/Aptos-Tokens
 ## Name to display
 
 <!--
-  The name to display for the address e.g. `Aptos Explorer`.  This should be under 64 characters, it may be cut off
+  The name to display for the address e.g. `Crustle Explorer`.  This should be under 64 characters, it may be cut off
   over 20 characters but show other places
 -->
 

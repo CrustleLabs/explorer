@@ -19,7 +19,10 @@ export function useGetTPS() {
 
   useEffect(() => {
     if (currentBlockHeight !== undefined) {
-      setBlockHeight(parseInt(currentBlockHeight));
+      const parsed = parseInt(currentBlockHeight);
+      if (!isNaN(parsed)) {
+        setBlockHeight(parsed);
+      }
     }
   }, [currentBlockHeight, state]);
 

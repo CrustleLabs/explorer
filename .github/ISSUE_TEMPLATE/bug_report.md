@@ -1,6 +1,6 @@
 ---
 name: "\U0001F41B Bug report"
-about: Create a bug report to help improve the Aptos Explorer
+about: Create a bug report to help improve the Crustle Explorer
 title: "[Bug] <Bug Title>"
 labels: bug
 assignees: ""

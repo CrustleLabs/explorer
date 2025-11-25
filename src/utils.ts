@@ -293,3 +293,32 @@ export function getAssetSymbol(
     return "Unknown Symbol";
   }
 }
+
+export function isEvmCompatible(address: string): boolean {
+  const accountAddressEvmLength = 20;
+  const leadingBytesToCheck = AccountAddress.LENGTH - accountAddressEvmLength; // 32 - 20 = 12 bytes
+  const formatedAddress = address.startsWith("0x") ? address.slice(2) : address;
+  // Check if the first 12 bytes are all zeros
+  for (let i = 0; i < leadingBytesToCheck; i++) {
+    if (Number(formatedAddress[i]) !== 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Converts an address with leading zeros to EVM format (20 bytes).
+ * If the first 12 bytes (24 hex characters) are all zeros, returns the last 20 bytes.
+ * Otherwise, returns the original address.
+ */
+export function convertToEvmAddressIfNeeded(address: string): string {
+  const formattedAddr = address.startsWith("0x") ? address.slice(2) : address;
+  // Check if first 24 characters (12 bytes) are all zeros
+  const leadingZeros = formattedAddr.slice(0, 24);
+  if (/^0+$/.test(leadingZeros)) {
+    // Return EVM format: 0x + last 40 characters (20 bytes)
+    return "0x" + formattedAddr.slice(24);
+  }
+  return address;
+}

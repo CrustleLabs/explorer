@@ -10,10 +10,10 @@ export const devnetUrl =
 export const networks: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/v1",
   testnet: "https://api.testnet.staging.aptoslabs.com/v1",
-  devnet: devnetUrl,
+  devnet: "http://15.204.106.149:28080/v1",
   decibel: "https://api.netna.staging.aptoslabs.com/v1",
   shelbynet: "https://api.shelbynet.staging.shelby.xyz/v1",
-  local: "http://127.0.0.1:8080/v1",
+  local: "http://15.204.106.149:28080/v1",
 };
 
 export const hiddenNetworks: readonly NetworkName[] = [

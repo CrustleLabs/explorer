@@ -237,13 +237,19 @@ function TransactionFunctionRow({
 }: {
   transaction: Types.Transaction;
 }) {
-  return (
+  // Only show if transaction is user_transaction and payload type is not startsWith dex
+  const shouldShow =
+    transaction.type === "user_transaction" &&
+    "payload" in transaction &&
+    !transaction.payload.type.startsWith("dex");
+
+  return shouldShow ? (
     <ContentRow
       title="Function:"
       value={<TransactionFunction transaction={transaction} />}
       tooltip={getLearnMoreTooltip("function")}
     />
-  );
+  ) : null;
 }
 
 function TransactionAmountRow({transaction}: {transaction: Types.Transaction}) {

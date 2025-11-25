@@ -94,6 +94,7 @@ function TransactionSenderCell({transaction}: TransactionCellProps) {
   let sender;
   if (transaction.type === TransactionTypeName.User) {
     sender = (transaction as Types.UserTransaction).sender;
+    console.log("sender:", sender);
   } else if (transaction.type === "block_metadata_transaction") {
     sender = (transaction as Types.BlockMetadataTransaction).proposer;
   }
