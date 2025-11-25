@@ -21,13 +21,13 @@ export function getGraphqlURI(networkName: NetworkName): string | undefined {
     case "testnet":
       return "https://api.testnet.staging.aptoslabs.com/v1/graphql";
     case "devnet":
-      return "https://api.devnet.staging.aptoslabs.com/v1/graphql";
+      return "http://15.204.106.149:26200/v1/graphql"; // Use your custom indexer
     case "decibel":
       return "https://api.netna.staging.aptoslabs.com/v1/graphql";
     case "shelbynet":
       return "https://api.shelbynet.staging.shelby.xyz/v1/graphql";
     case "local":
-      return "http://127.0.0.1:8090/v1/graphql";
+      return "http://15.204.106.149:26200/v1/graphql"; // Use your custom indexer
     default:
       return undefined;
   }

@@ -28,6 +28,7 @@ type BalanceChangeCellProps = {
 };
 
 function AddressCell({balanceChange}: BalanceChangeCellProps) {
+  console.log("balanceChange:", balanceChange);
   return (
     <GeneralTableCell>
       {balanceChange.address ? (

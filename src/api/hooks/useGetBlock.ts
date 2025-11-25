@@ -18,6 +18,7 @@ export function useGetBlockByHeight({
     queryFn: () =>
       getBlockByHeight({height, withTransactions}, state.sdk_v2_client),
     refetchInterval: 1200000,
+    enabled: !isNaN(height) && height >= 0, // Only fetch if height is a valid number
   });
 }
 

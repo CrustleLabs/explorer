@@ -24,7 +24,12 @@ import {
   truncateAddress,
   truncateAddressMiddle,
 } from "../pages/utils";
-import {assertNever, standardizeAddress} from "../utils";
+import {
+  assertNever,
+  isEvmCompatible,
+  standardizeAddress,
+  convertToEvmAddressIfNeeded,
+} from "../utils";
 import {useGetNameFromAddress} from "../api/hooks/useGetANS";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import IdenticonImg from "./IdenticonImg";
@@ -100,18 +105,22 @@ function AccountHashButtonInner({
   isValidator,
 }: AccountHashButtonInnerProps) {
   // Standardize address
-  const address = standardizeAddress(hash);
+  const standardizedAddress = standardizeAddress(hash);
+  const evmAddress = isEvmCompatible(standardizedAddress)
+    ? convertToEvmAddressIfNeeded(standardizedAddress)
+    : null;
+  const address = standardizedAddress;
 
   const name = useGetNameFromAddress(address, false, isValidator);
   const truncateHash =
     size === "large"
-      ? truncateAddressMiddle(address)
-      : truncateAddress(address);
+      ? truncateAddressMiddle(evmAddress ?? address)
+      : truncateAddress(evmAddress ?? address);
   const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
   const theme = useTheme();
   const copyAddress = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    await navigator.clipboard.writeText(address);
+    await navigator.clipboard.writeText(evmAddress ?? address);
     setCopyTooltipOpen(true);
     setTimeout(() => {
       setCopyTooltipOpen(false);
@@ -120,9 +129,9 @@ function AccountHashButtonInner({
 
   return (
     <Stack direction="row" alignItems={"center"} spacing={1}>
-      <IdenticonImg address={address} />
+      <IdenticonImg address={evmAddress ?? address} />
       <Link
-        to={getHashLinkStr(address, type)}
+        to={getHashLinkStr(evmAddress ?? address, type)}
         sx={{
           backgroundColor: codeBlockColor,
           "&:hover": {
@@ -137,7 +146,11 @@ function AccountHashButtonInner({
           textDecoration: "none",
         }}
       >
-        <Tooltip title={name ?? address} enterDelay={500} enterNextDelay={500}>
+        <Tooltip
+          title={name ?? evmAddress ?? address}
+          enterDelay={500}
+          enterNextDelay={500}
+        >
           <span>{name ? truncate(name, 9, 11, "…") : truncateHash}</span>
         </Tooltip>
         <Tooltip title="Copied" open={copyTooltipOpen}>

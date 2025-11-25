@@ -363,7 +363,7 @@ function StakeOperationDialogContent({
       <DialogContent sx={{textAlign: "center"}}>
         <Typography variant="caption" color={grey[450]}>
           <div>
-            Please do your own research. Aptos Labs is not responsible for the
+            Please do your own research. Crustle Labs is not responsible for the
             performance of the validator nodes displayed here, or the security
             of your funds
           </div>
@@ -424,7 +424,7 @@ function StakeOperationDialogContent({
       <DialogContent sx={{textAlign: "center"}}>
         <Typography variant="caption" color={grey[450]}>
           <div>
-            Please do your own research. Aptos Labs is not responsible for the
+            Please do your own research. Crustle Labs is not responsible for the
             security of your funds
           </div>
         </Typography>
@@ -476,7 +476,7 @@ function StakeOperationDialogContent({
       <DialogContent sx={{textAlign: "center"}}>
         <Typography variant="caption" color={grey[450]}>
           <div>
-            Please do your own research. Aptos Labs is not responsible for the
+            Please do your own research. Crustle Labs is not responsible for the
             security of your funds
           </div>
         </Typography>

@@ -10,5 +10,6 @@ export function useGetTransaction(txnHashOrVersion: string) {
   return useQuery<Types.Transaction, ResponseError>({
     queryKey: ["transaction", {txnHashOrVersion}, state.network_value],
     queryFn: () => getTransaction({txnHashOrVersion}, state.aptos_client),
+    retry: false, // Don't retry if transaction doesn't exist
   });
 }
