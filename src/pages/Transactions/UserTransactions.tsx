@@ -3,10 +3,11 @@ import Box from "@mui/material/Box";
 import {useSearchParams} from "react-router-dom";
 import {Pagination, Stack} from "@mui/material";
 import {UserTransactionsTable} from "./TransactionsTable";
-import useGetUserTransactionVersions from "../../api/hooks/useGetUserTransactionVersions";
+import useGetUserTransactionVersions, {
+  useGetUserTransactionsCount,
+} from "../../api/hooks/useGetUserTransactionVersions";
 
-const LIMIT = 20;
-const NUM_PAGES = 100;
+const LIMIT = 100;
 
 function RenderPagination({
   currentPage,
@@ -48,6 +49,11 @@ export default function UserTransactions() {
 
   const startVersion = useGetUserTransactionVersions(1)[0];
   const versions = useGetUserTransactionVersions(LIMIT, startVersion, offset);
+  const totalCount = useGetUserTransactionsCount();
+
+  // Calculate total pages based on actual data count
+  // Default to 1 page if count is not yet loaded
+  const numPages = totalCount ? Math.ceil(totalCount / LIMIT) : 1;
 
   return (
     <>
@@ -56,7 +62,7 @@ export default function UserTransactions() {
           <UserTransactionsTable versions={versions} />
         </Box>
         <Box sx={{display: "flex", justifyContent: "center"}}>
-          <RenderPagination currentPage={currentPage} numPages={NUM_PAGES} />
+          <RenderPagination currentPage={currentPage} numPages={numPages} />
         </Box>
       </Stack>
     </>

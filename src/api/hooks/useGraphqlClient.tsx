@@ -21,13 +21,13 @@ export function getGraphqlURI(networkName: NetworkName): string | undefined {
     case "testnet":
       return "https://api.testnet.staging.aptoslabs.com/v1/graphql";
     case "devnet":
-      return "http://15.204.106.149:26200/v1/graphql"; // Use your custom indexer
+      return "http://15.204.106.149:8080/v1/graphql"; // Use your custom indexer
     case "decibel":
       return "https://api.netna.staging.aptoslabs.com/v1/graphql";
     case "shelbynet":
       return "https://api.shelbynet.staging.shelby.xyz/v1/graphql";
     case "local":
-      return "http://15.204.106.149:26200/v1/graphql"; // Use your custom indexer
+      return "http://15.204.106.149:8080/v1/graphql"; // Use your custom indexer
     default:
       return undefined;
   }
@@ -35,12 +35,16 @@ export function getGraphqlURI(networkName: NetworkName): string | undefined {
 
 function getGraphqlClient(networkName: NetworkName): ApolloClient {
   const apiKey = getApiKey(networkName);
-  // Middleware to attach the authorization token.
+  // Middleware to attach the authorization token and Hasura admin secret.
   const authMiddleware = new ApolloLink((operation, forward) => {
     operation.setContext(({headers = {}}) => ({
       headers: {
         ...headers,
         ...(apiKey ? {authorization: `Bearer ${apiKey}`} : {}),
+        // Add Hasura admin secret for custom devnet/local networks
+        ...(networkName === "devnet" || networkName === "local"
+          ? {"x-hasura-admin-secret": "myadminsecret"}
+          : {}),
       },
     }));
     return forward(operation);

@@ -22,6 +22,16 @@ const TOP_USER_TRANSACTIONS_QUERY = gql`
   }
 `;
 
+const USER_TRANSACTIONS_COUNT_QUERY = gql`
+  query UserTransactionsCount {
+    user_transactions_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
 export default function useGetUserTransactionVersions(
   limit: number,
   startVersion?: number,
@@ -41,4 +51,20 @@ export default function useGetUserTransactionVersions(
   return data.user_transactions.map((txn: {version: number}) => {
     return txn.version;
   });
+}
+
+export function useGetUserTransactionsCount(): number | undefined {
+  const {loading, error, data} = useGraphqlQuery<{
+    user_transactions_aggregate: {
+      aggregate: {
+        count: number;
+      };
+    };
+  }>(USER_TRANSACTIONS_COUNT_QUERY);
+
+  if (loading || error || !data) {
+    return undefined;
+  }
+
+  return data.user_transactions_aggregate.aggregate.count;
 }
