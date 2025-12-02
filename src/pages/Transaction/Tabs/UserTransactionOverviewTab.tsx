@@ -24,6 +24,7 @@ import {
 import {findCoinData} from "./BalanceChangeTab";
 import {useGetAssetMetadata} from "../../../api/hooks/useGetAssetMetadata";
 import {Hex} from "@aptos-labs/ts-sdk";
+import DexOrderInfo from "./Components/DexOrderInfo";
 
 type EconiaState = {
   orderID: string | undefined;
@@ -564,6 +565,9 @@ export default function UserTransactionOverviewTab({
 
   return (
     <Box marginBottom={3}>
+      {/* DEX Order Info - 显示在 Version 上方 */}
+      <DexOrderInfo transaction={transactionData} />
+
       <ContentBox padding={4}>
         <ContentRow
           title={"Version:"}

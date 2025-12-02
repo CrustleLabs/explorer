@@ -10,7 +10,7 @@ import {Stack, Typography} from "@mui/material";
 import TransactionsTable from "../Transactions/TransactionsTable";
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 
-const PREVIEW_LIMIT = 100;
+const PREVIEW_LIMIT = 50;
 
 function TransactionContent({data}: UseQueryResult<Array<Types.Transaction>>) {
   if (!data) {
