@@ -10,16 +10,15 @@ export const devnetUrl =
 export const networks: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/v1",
   testnet: "https://api.testnet.staging.aptoslabs.com/v1",
-  devnet: "http://15.204.106.149:28080/v1",
+  devnet: "http://15.204.106.149:18080/v1",
   decibel: "https://api.netna.staging.aptoslabs.com/v1",
   shelbynet: "https://api.shelbynet.staging.shelby.xyz/v1",
-  local: "http://15.204.106.149:28080/v1",
+  local: "http://15.204.106.149:18080/v1",
 };
 
 export const hiddenNetworks: readonly NetworkName[] = [
   "decibel",
   "shelbynet",
-  "local",
 ] as const;
 
 export type NetworkName = keyof typeof networks;
