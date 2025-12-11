@@ -10,3 +10,5 @@ robots.txt
 .node-version
 .npmrc
 *.svg
+Dockerfile
+.dockerignore
