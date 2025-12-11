@@ -33,6 +33,8 @@ type DexPayload = {
     condition_type: number;
     target_order_id: string;
     margin_mode: number;
+    reduce_only: boolean;
+    position_mode: number;
   }>;
   operation: number;
   created_by: number;
@@ -96,6 +98,24 @@ const SIDE_LABELS: Record<Side, {label: string; color: string}> = {
   [Side.Buy]: {label: "Long", color: positiveColor},
   [Side.Sell]: {label: "Short", color: redColor},
 };
+
+// Get side label considering reduce_only flag
+function getSideLabel(
+  side: Side,
+  reduceOnly: boolean,
+): {label: string; color: string} {
+  if (reduceOnly) {
+    // When reduce_only is true, it's closing a position
+    if (side === Side.Buy) {
+      // Buy to close = closing a Short position
+      return {label: "Close Short", color: positiveColor};
+    } else if (side === Side.Sell) {
+      // Sell to close = closing a Long position
+      return {label: "Close Long", color: redColor};
+    }
+  }
+  return SIDE_LABELS[side] || {label: "Unknown", color: grey[500]};
+}
 
 // Time In Force labels using SDK enum
 const TIME_IN_FORCE_LABELS: Record<TimeInForce, string> = {
@@ -172,10 +192,7 @@ export default function DexOrderInfo({transaction}: DexOrderInfoProps) {
 
   const orderType =
     ORDER_TYPE_LABELS[order.order_basic_type as OrderBasicType] || "Unknown";
-  const sideInfo = SIDE_LABELS[order.side as Side] || {
-    label: "Unknown",
-    color: grey[500],
-  };
+  const sideInfo = getSideLabel(order.side as Side, order.reduce_only);
   const tif =
     TIME_IN_FORCE_LABELS[order.time_in_force as TimeInForce] || "Unknown";
   const marginMode =
