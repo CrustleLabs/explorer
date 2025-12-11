@@ -7,9 +7,9 @@ RUN npm install -g serve
 WORKDIR /app
 
 # Copy pre-built assets (build on host first)
-COPY dist ./dist
+COPY build ./build
 
 EXPOSE 9000
 
-CMD ["serve", "-s", "dist", "-l", "9000"]
+CMD ["serve", "-s", "build", "-l", "9000"]
 
