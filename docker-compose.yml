@@ -1,0 +1,12 @@
+services:
+  explorer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    ports:
+      - "9000:9000"
+    restart: always
+    environment:
+      - NODE_ENV=production
