@@ -12,3 +12,4 @@ robots.txt
 *.svg
 Dockerfile
 .dockerignore
+*.ttf
