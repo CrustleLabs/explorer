@@ -2,7 +2,7 @@ import React from "react";
 import {NavLink} from "react-router-dom";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import {useGetInMainnet} from "../../api/hooks/useGetInMainnet";
+
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 
 function NavButton({
@@ -26,10 +26,15 @@ function NavButton({
           variant="nav"
           title={title}
           style={{
-            color: "inherit",
-            fontSize: "1rem",
-            fontWeight: isActive ? 700 : undefined,
+            color: isActive ? "#CDB9F9" : "#999999",
+            fontSize: "14px",
+            fontWeight: 400,
+            fontFamily: '"SF Pro", sans-serif',
+            textTransform: "none",
+            minWidth: "auto",
+            padding: 0,
           }}
+          disableRipple
         >
           {label}
         </Button>
@@ -39,15 +44,12 @@ function NavButton({
 }
 
 export default function Nav() {
-  const inMainnet = useGetInMainnet();
-
   return (
     <Box
       sx={{
         display: {xs: "none", md: "flex"},
         alignItems: "center",
-        gap: {md: 3, lg: 8},
-        marginRight: {md: "2rem", lg: "3.5rem"},
+        gap: 4, // 32px
       }}
     >
       <NavButton
@@ -55,13 +57,6 @@ export default function Nav() {
         title="View All Transactions"
         label="Transactions"
       />
-      {inMainnet && (
-        <NavButton
-          to="/analytics"
-          title="View Network Analytics"
-          label="Analytics"
-        />
-      )}
       <NavButton
         to="/validators"
         title="View All Validators"

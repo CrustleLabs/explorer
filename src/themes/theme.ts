@@ -74,37 +74,37 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
   //
 
   typography: {
-    fontFamily: `"DM Mono",lft-etica-mono,ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace`,
+    fontFamily: `"SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif`,
     fontWeightLight: 200,
     fontWeightRegular: 400,
     fontWeightBold: 500,
     h1: {
-      fontFamily: `apparat-semicond,Geneva,Tahoma,Verdana,sans-serif`,
-      fontWeight: "600",
+      fontFamily: `"SF Pro", sans-serif`,
+      fontWeight: "700", // SF Pro Bold
     },
     h2: {
-      fontFamily: `apparat-semicond,Geneva,Tahoma,Verdana,sans-serif`,
-      fontWeight: "600",
+      fontFamily: `"SF Pro", sans-serif`,
+      fontWeight: "700",
     },
     h3: {
-      fontFamily: `apparat-semicond,Geneva,Tahoma,Verdana,sans-serif`,
+      fontFamily: `"SF Pro", sans-serif`,
       fontWeight: "600",
     },
     h4: {
-      fontFamily: `apparat-semicond,Geneva,Tahoma,Verdana,sans-serif`,
+      fontFamily: `"SF Pro", sans-serif`,
       fontWeight: "600",
     },
     h5: {
-      fontFamily: `apparat-semicond,Geneva,Tahoma,Verdana,sans-serif`,
+      fontFamily: `"SF Pro", sans-serif`,
       fontWeight: "600",
     },
     h6: {
-      fontFamily: `apparat-semicond,Geneva,Tahoma,Verdana,sans-serif`,
+      fontFamily: `"SF Pro", sans-serif`,
       fontWeight: "600",
     },
     stats: {
-      fontFamily: `"DM Mono",lft-etica-mono,ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace`,
-      fontWeight: "400",
+      fontFamily: `"Sora", sans-serif`,
+      fontWeight: "700", // Sora Bold usually for stats
     },
     subtitle1: {
       fontWeight: 400,
@@ -186,7 +186,7 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
           },
 
           background: {
-            default: grey[900],
+            default: "#000000",
             paper: grey[800],
           },
 

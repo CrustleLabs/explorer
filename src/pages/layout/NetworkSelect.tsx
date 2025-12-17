@@ -3,10 +3,11 @@ import {
   Select,
   SelectChangeEvent,
   Typography,
+  Divider,
 } from "@mui/material";
 import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
-import SvgIcon, {SvgIconProps} from "@mui/material/SvgIcon";
+import IconGlobe from "../../assets/svg/icon_globe.svg?react";
 import {useTheme} from "@mui/material/styles";
 import {Stack} from "@mui/system";
 import React from "react";
@@ -16,7 +17,6 @@ import {
 } from "../../api/hooks/useGetNetworkChainIds";
 import {hiddenNetworks, NetworkName, networks} from "../../constants";
 import {useGlobalState} from "../../global-config/GlobalConfig";
-import {grey} from "../../themes/colors/aptosColorPalette";
 
 function NetworkAndChainIdCached({
   networkName,
@@ -33,10 +33,25 @@ function NetworkAndChainIdCached({
       justifyContent="space-between"
       spacing={3}
       width="100%"
-      paddingY={0.75}
+      paddingY={0}
     >
-      <Typography>{networkName}</Typography>
-      <Typography variant="body2" sx={{color: theme.palette.text.disabled}}>
+      <Typography
+        sx={{
+          fontSize: "14px",
+          fontWeight: 400,
+          color: theme.palette.mode === "dark" ? "#fff" : "#000",
+        }}
+        textTransform="capitalize"
+      >
+        {networkName}
+      </Typography>
+      <Typography
+        sx={{
+          fontSize: "14px",
+          fontWeight: 400,
+          color: theme.palette.mode === "dark" ? "#999" : "#666",
+        }}
+      >
         {chainId ?? "…"}
       </Typography>
     </Stack>
@@ -81,14 +96,6 @@ export default function NetworkSelect() {
     [],
   );
 
-  function DropdownIcon(props: SvgIconProps) {
-    return (
-      <SvgIcon {...props}>
-        <path d="M16.6,9.7l-2.9,3c-1,1-2.8,1-3.8,0l-2.6-3l-0.8,0.7l2.6,3c0.7,0.7,1.6,1.1,2.6,1.1c1,0,2-0.4,2.6-1.1l2.9-3 L16.6,9.7z" />
-      </SvgIcon>
-    );
-  }
-
   return (
     <Box>
       <FormControl size="small">
@@ -97,27 +104,62 @@ export default function NetworkSelect() {
           inputProps={{"aria-label": "Select Network"}}
           value={state.network_name}
           onChange={handleChange}
-          renderValue={(value) => <Typography>{value}</Typography>}
+          renderValue={() => (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <IconGlobe style={{width: 16, height: 16}} />
+            </Box>
+          )}
           onClose={() => {
             setTimeout(() => {
               (document.activeElement as HTMLElement)?.blur();
             }, 0);
           }}
-          variant="outlined"
-          autoWidth
-          IconComponent={DropdownIcon}
+          variant="standard"
+          disableUnderline
+          IconComponent={() => null} // Hide default arrow
           sx={{
-            borderRadius: 1,
-            fontWeight: "400",
-            fontSize: "1rem",
-            minWidth: 80,
-            ml: 1,
-            color: "inherit",
+            borderRadius: "50%",
+            width: "28px",
+            height: "28px",
+            minWidth: "28px",
+            display: "flex",
             alignItems: "center",
-            textTransform: "capitalize",
-            "& .MuiSvgIcon-root": {
-              color: theme.palette.text.secondary,
+            justifyContent: "center",
+            padding: 0,
+            background:
+              theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.12)"
+                : "rgba(0,0,0,0.05)",
+            border:
+              theme.palette.mode === "dark"
+                ? "0.5px solid rgba(255,255,255,0.12)"
+                : "0.5px solid rgba(0,0,0,0.1)",
+            "&:hover": {
+              background:
+                theme.palette.mode === "dark"
+                  ? "rgba(255,255,255,0.2)"
+                  : "rgba(0,0,0,0.1)",
             },
+            "& .MuiSelect-select": {
+              padding: "0 !important",
+              paddingRight: "0 !important",
+              paddingLeft: "0 !important", // Ensure no left padding
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              width: "100%",
+              height: "100%",
+            },
+            color: "inherit",
           }}
           // dropdown container overrides
           MenuProps={{
@@ -125,38 +167,85 @@ export default function NetworkSelect() {
             PaperProps: {
               sx: {
                 minWidth: 240,
-                boxShadow: "0 25px 50px -12px rgba(18,22,21,0.25)",
-                marginTop: 0.5,
-                "& .MuiMenuItem-root.Mui-selected": {
-                  backgroundColor: `${
-                    theme.palette.mode === "dark" ? grey[700] : grey[200]
-                  }!important`,
-                  pointerEvents: "none",
+                borderRadius: "12px",
+                border:
+                  theme.palette.mode === "dark"
+                    ? "1px solid rgba(255,255,255,0.1)"
+                    : "1px solid rgba(0,0,0,0.05)",
+                backgroundColor:
+                  theme.palette.mode === "dark" ? "#16141A" : "#FFFFFF",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                marginTop: 1,
+                "& .MuiList-root": {
+                  padding: "8px", // Add padding to list container
+                },
+                "& .MuiMenuItem-root": {
+                  fontSize: "14px",
+                  padding: "8px 12px",
+                  borderRadius: "8px", // Rounded corners for items
+                  margin: "2px 0", // Vertical spacing
+                  color: theme.palette.mode === "dark" ? "#FFFFFF" : "#121615",
+                  "&:hover": {
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(255,255,255,0.08)"
+                        : "rgba(0,0,0,0.05)",
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(205, 185, 249, 0.12)" // Brand purple tint
+                        : "rgba(0,0,0,0.05)",
+                    "&:hover": {
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? "rgba(255, 255, 255, 0.15)"
+                          : "rgba(0,0,0,0.1)",
+                    },
+                  },
                 },
               },
             },
           }}
         >
-          <MenuItem disabled value="">
+          <MenuItem disabled value="" sx={{opacity: "1 !important"}}>
             <Stack
               direction="row"
               alignItems="center"
               justifyContent="space-between"
               spacing={3}
               width="100%"
-              color={grey[450]}
             >
-              <Typography variant="body2">Network</Typography>
-              <Typography variant="body2">Chain ID</Typography>
+              <Typography
+                sx={{
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  lineHeight: "18px",
+                }}
+              >
+                Network
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  fontWeight: 400,
+                  lineHeight: "16px",
+                  color: "#999",
+                }}
+              >
+                Chain ID
+              </Typography>
             </Stack>
           </MenuItem>
+          <Divider
+            sx={{
+              borderColor: "rgba(255,255,255,0.1)",
+              margin: "4px 0 8px 0 !important",
+            }}
+          />
 
           {visibleNetworkNames.map((networkName) => (
-            <MenuItem
-              key={networkName}
-              value={networkName}
-              sx={{paddingY: 0, textTransform: "capitalize"}}
-            >
+            <MenuItem key={networkName} value={networkName}>
               <NetworkMenuItem networkName={networkName} />
             </MenuItem>
           ))}

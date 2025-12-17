@@ -11,10 +11,10 @@ const colorModeContext = createContext<ColorModeContext | null>(null);
 export const ProvideColorMode: React.FC<ProvideColorModeProps> = ({
   children,
 }: ProvideColorModeProps) => {
-  const {toggleColorMode, theme} = useProvideColorMode();
+  const {toggleColorMode, theme, mode} = useProvideColorMode();
 
   return (
-    <colorModeContext.Provider value={{toggleColorMode}}>
+    <colorModeContext.Provider value={{toggleColorMode, mode}}>
       <ThemeProvider theme={theme}>{children}</ThemeProvider>
     </colorModeContext.Provider>
   );

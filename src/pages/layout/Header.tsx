@@ -5,9 +5,8 @@ import Container from "@mui/material/Container";
 import NetworkSelect from "./NetworkSelect";
 import {useColorMode} from "../../context";
 import {useMediaQuery, useTheme} from "@mui/material";
-import IconLight from "../../assets/svg/icon_light.svg?react";
-import LogoIconLight from "../../assets/svg/crustle_logo_icon_light.svg?react";
-import LogoIconDark from "../../assets/svg/crustle_logo_icon_dark.svg?react";
+import Sun from "../../assets/svg/sun.svg?react";
+import Logo from "../../assets/logo.svg";
 import IconDark from "../../assets/svg/icon_dark.svg?react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
@@ -106,55 +105,99 @@ export default function Header() {
         }}
       >
         <FeatureBar />
-        <Container maxWidth={false}>
+        <Container
+          maxWidth={false}
+          sx={{
+            width: {xs: "95%", md: "62.5%"},
+            mx: "auto",
+            display: "flex",
+            alignItems: "center",
+            px: "0 !important", // Override default padding
+          }}
+        >
           <Toolbar
             sx={{
               height: "5rem",
+              width: "100%",
               color:
                 theme.palette.mode === "dark" ? grey[50] : "rgba(18,22,21,1)",
+              justifyContent: "space-between",
             }}
             disableGutters
           >
-            <Link
-              onClick={scrollTop}
-              to="/"
-              color="inherit"
-              underline="none"
-              sx={{
-                width: {xs: "30px", sm: "30px", md: "40px"},
-                height: {xs: "30px", sm: "30px", md: "40px"},
-                marginRight: "auto",
-              }}
-            >
-              {isDark ? (
-                <LogoIconDark width="3rem" height="3rem" />
-              ) : (
-                <LogoIconLight width="3rem" height="3rem" />
-              )}
-            </Link>
+            {/* Left: Logo */}
+            <Box sx={{display: "flex", alignItems: "center"}}>
+              <Link
+                onClick={scrollTop}
+                to="/"
+                color="inherit"
+                underline="none"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Box
+                  component="img"
+                  src={Logo}
+                  alt="Settle Explorer"
+                  sx={{
+                    height: "48px",
+                    width: "auto",
+                    display: "block",
+                  }}
+                />
+              </Link>
+            </Box>
 
+            {/* Center: Navigation */}
             <Nav />
-            <NetworkSelect />
-            <Button
-              onClick={toggleColorMode}
-              sx={{
-                width: "30px",
-                height: "30px",
-                display: "flex",
-                alignItems: "center",
-                justifyItems: "center",
-                padding: "0",
-                minWidth: "30px",
-                marginLeft: "1rem",
-                color: "inherit",
-                "&:hover": {background: "transparent", opacity: "0.8"},
-              }}
-            >
-              {theme.palette.mode === "light" ? <IconLight /> : <IconDark />}
-            </Button>
-            <NavMobile />
-            {!isOnMobile && (
-              <Box sx={{marginLeft: "1rem"}}>
+
+            {/* Right: Actions */}
+            <Box sx={{display: "flex", alignItems: "center", gap: 1.5}}>
+              <NetworkSelect />
+
+              <Button
+                onClick={toggleColorMode}
+                sx={{
+                  width: "32px",
+                  height: "32px",
+                  minWidth: "32px",
+                  borderRadius: "50%",
+                  padding: 0,
+                  color: "inherit",
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.05)",
+                  "&:hover": {
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "rgba(255,255,255,0.2)"
+                        : "rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                {theme.palette.mode === "light" ? (
+                  <IconDark style={{width: 20, height: 20}} />
+                ) : (
+                  <Sun style={{width: 20, height: 20}} />
+                )}
+              </Button>
+
+              <Box
+                sx={{
+                  width: "1px",
+                  height: "20px",
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.1)",
+                }}
+              />
+
+              <NavMobile />
+              {!isOnMobile && (
                 <WalletConnector
                   networkSupport={state.network_name}
                   handleNavigate={() =>
@@ -163,8 +206,8 @@ export default function Header() {
                   sortInstallableWallets={sortPetraFirst}
                   modalMaxWidth="sm"
                 />
-              </Box>
-            )}
+              )}
+            </Box>
           </Toolbar>
         </Container>
       </MuiAppBar>

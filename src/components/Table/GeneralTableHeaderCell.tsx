@@ -44,7 +44,17 @@ export default function GeneralTableHeaderCell({
   };
 
   const headerTextComponent = (
-    <Typography variant="subtitle1" sx={{fontSize: 15, lineHeight: "inherit"}}>
+    <Typography
+      variant="subtitle1"
+      sx={{
+        fontSize: "14px",
+        lineHeight: "18px",
+        fontFamily: '"SF Pro", system-ui, sans-serif',
+        fontWeight: 400,
+        textTransform: "none",
+        color: "#999",
+      }}
+    >
       {header}
     </Typography>
   );
