@@ -7,7 +7,7 @@ interface PageMetadataArgs {
 export function usePageMetadata(args: PageMetadataArgs = {}): void {
   useEffect(() => {
     document.title = args.title
-      ? `${args.title} | Crustle Explorer`
-      : "Crustle Explorer";
+      ? `${args.title} | Settle Explorer`
+      : "Settle Explorer";
   }, [args]);
 }

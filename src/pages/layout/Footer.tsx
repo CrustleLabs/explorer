@@ -79,7 +79,10 @@ export default function Footer() {
       <Container
         maxWidth={false}
         sx={{
-          width: {xs: "95%", md: "62.5%"},
+          width: {xs: "95%", md: "70%"},
+          "@media (min-width: 1920px)": {
+            width: "62.5%",
+          },
           mx: "auto",
           px: "0 !important",
         }}
@@ -146,7 +149,7 @@ export default function Footer() {
                         color: isDark ? "#fff" : grey[700],
                         fontSize: "16px",
                         fontWeight: 700,
-                        fontFamily: '"SF Pro", system-ui, sans-serif',
+                        fontFamily: '"Sora", sans-serif',
                       }}
                     >
                       {section.title}

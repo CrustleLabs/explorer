@@ -108,7 +108,10 @@ export default function Header() {
         <Container
           maxWidth={false}
           sx={{
-            width: {xs: "95%", md: "62.5%"},
+            width: {xs: "95%", md: "70%"},
+            "@media (min-width: 1920px)": {
+              width: "62.5%",
+            },
             mx: "auto",
             display: "flex",
             alignItems: "center",

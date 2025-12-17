@@ -40,7 +40,7 @@ const ACTIVITY_COLORS = [
 export default function HeroSection() {
   return (
     <Box sx={heroCardSx}>
-      <Grid container spacing={4} alignItems="center">
+      <Grid container spacing={4} alignItems="flex-start">
         {/* Left Side: Title, Info, Legend */}
         <Grid size={{xs: 12, md: 5}}>
           <Box
@@ -97,7 +97,7 @@ export default function HeroSection() {
 
             {/* Legend */}
             <Box>
-              <Box sx={{display: "flex", gap: 1, mb: 1}}>
+              <Box sx={{display: "flex", gap: 1, mb: 1.5}}>
                 {ACTIVITY_COLORS.map((color, i) => (
                   <Box
                     key={i}
@@ -122,13 +122,23 @@ export default function HeroSection() {
                   High
                 </Typography>
               </Box>
+              {/* Dashed line below legend */}
+              <Box
+                sx={{
+                  borderBottom: "1px dashed rgba(255,255,255,0.2)",
+                  mt: 2,
+                  width: "141px",
+                }}
+              />
             </Box>
           </Box>
         </Grid>
 
         {/* Right Side: Visualization Grid */}
         <Grid size={{xs: 12, md: 7}}>
-          <ActivityGraph />
+          <Box sx={{mt: {md: 7}}}>
+            <ActivityGraph />
+          </Box>
         </Grid>
       </Grid>
     </Box>

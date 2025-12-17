@@ -19,7 +19,7 @@ export default function VerificationPage() {
 
       <Alert severity="info" sx={{mb: 4}}>
         <AlertTitle>Verification Overview</AlertTitle>
-        The Crustle Explorer supports multiple verification levels to help users
+        The Settle Explorer supports multiple verification levels to help users
         identify legitimate tokens and addresses. This page explains how to get
         your tokens and addresses verified through the official channels.
       </Alert>
@@ -43,7 +43,7 @@ export default function VerificationPage() {
         </Alert>
 
         <Typography variant="body1" mb={2}>
-          To get your token verified on Crustle Explorer, you must be added to
+          To get your token verified on Settle Explorer, you must be added to
           the community-maintained Panora token list.
         </Typography>
 
