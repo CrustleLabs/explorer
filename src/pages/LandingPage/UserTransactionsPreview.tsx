@@ -2,6 +2,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import * as RRD from "react-router-dom";
 import {Stack, Typography} from "@mui/material";
+import HeaderSearch from "../layout/Search/Index";
 import {UserTransactionsTable} from "../Transactions/TransactionsTable";
 import useGetUserTransactionVersions from "../../api/hooks/useGetUserTransactionVersions";
 import TransactionsPreview from "./TransactionsPreview";
@@ -11,6 +12,31 @@ import {Types} from "aptos";
 import {ensureMillisecondTimestamp} from "../utils";
 
 const PREVIEW_TRANSACTIONS_COUNT = 10;
+
+// Card container styling matching Figma
+const transactionsCardSx = {
+  backgroundColor: "#16141A",
+  borderRadius: "24px",
+  border: "0.5px solid rgba(255,255,255,0.06)",
+  p: 4,
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+};
+
+// View all link styling
+const viewAllLinkSx = {
+  color: "#CDB9F9",
+  fontSize: "16px",
+  fontFamily: '"SF Pro", system-ui, sans-serif',
+  textDecoration: "none",
+  cursor: "pointer",
+  transition: "opacity 0.2s",
+  "&:hover": {
+    opacity: 0.8,
+  },
+  textTransform: "none",
+};
 
 export default function UserTransactionsPreview() {
   const versions = useGetUserTransactionVersions(PREVIEW_TRANSACTIONS_COUNT);
@@ -39,23 +65,47 @@ export default function UserTransactionsPreview() {
   }
 
   return (
-    <>
-      <Stack spacing={2}>
-        <Typography variant="h5">User Transactions</Typography>
+    <Box sx={transactionsCardSx}>
+      <Stack spacing={3}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: {xs: "column", md: "row"},
+            justifyContent: "space-between",
+            alignItems: {xs: "flex-start", md: "center"},
+            gap: 2,
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              color: "#fff",
+              fontSize: "32px",
+              fontWeight: 700,
+              lineHeight: "36px",
+              fontFamily: '"SF Pro", system-ui, sans-serif',
+              whiteSpace: "nowrap",
+            }}
+          >
+            Recent Transactions
+          </Typography>
+          <Box sx={{width: {xs: "100%", md: "400px"}}}>
+            <HeaderSearch />
+          </Box>
+        </Box>
         <Box sx={{width: "auto", overflowX: "auto"}}>
           <UserTransactionsTable versions={versions} />
         </Box>
-        <Box sx={{display: "flex", justifyContent: "center"}}>
+        <Box sx={{display: "flex", justifyContent: "center", pt: 2, pb: 2}}>
           <Button
             component={RRD.Link}
             to={augmentTo("/transactions")}
-            variant="primary"
-            sx={{margin: "0 auto", mt: 3}}
+            sx={viewAllLinkSx}
           >
-            View all Transactions
+            {"< View all transactions >"}
           </Button>
         </Box>
       </Stack>
-    </>
+    </Box>
   );
 }

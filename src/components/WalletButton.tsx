@@ -38,7 +38,21 @@ export default function WalletButton({
         variant="contained"
         onClick={connected ? handleClick : onConnectWalletClick}
         className="wallet-button"
-        sx={{borderRadius: "10px"}}
+        sx={{
+          borderRadius: "100px",
+          fontFamily: '"SF Pro", sans-serif',
+          textTransform: "none",
+          backgroundColor: "#CDB9F9",
+          color: "#000000",
+          boxShadow: "none",
+          fontSize: "12px",
+          fontWeight: 500,
+          padding: "6px 20px",
+          "&:hover": {
+            backgroundColor: "#BFA5F5",
+            boxShadow: "none",
+          },
+        }}
       >
         {connected ? (
           <>
@@ -47,7 +61,11 @@ export default function WalletButton({
               src={wallet?.icon}
               sx={{width: 24, height: 24}}
             />
-            <Typography noWrap ml={2}>
+            <Typography
+              noWrap
+              ml={2}
+              sx={{fontFamily: '"SF Pro", sans-serif', fontWeight: 600}}
+            >
               {account?.ansName ||
                 truncateAddress(account?.address?.toString()) ||
                 "Unknown"}
@@ -55,8 +73,20 @@ export default function WalletButton({
           </>
         ) : (
           <>
-            <AccountBalanceWalletOutlinedIcon sx={{marginRight: 1}} />
-            <Typography noWrap>Connect Wallet</Typography>
+            <AccountBalanceWalletOutlinedIcon
+              sx={{marginRight: 1, fontSize: "18px"}}
+            />
+            <Typography
+              noWrap
+              sx={{
+                fontFamily: '"SF Pro", sans-serif',
+                fontWeight: 500,
+                fontSize: "12px",
+                lineHeight: "16px",
+              }}
+            >
+              Connect Wallet
+            </Typography>
           </>
         )}
       </Button>

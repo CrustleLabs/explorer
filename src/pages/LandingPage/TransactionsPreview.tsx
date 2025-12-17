@@ -7,10 +7,48 @@ import {useGlobalState} from "../../global-config/GlobalConfig";
 import Box from "@mui/material/Box";
 import * as RRD from "react-router-dom";
 import {Stack, Typography} from "@mui/material";
-import TransactionsTable from "../Transactions/TransactionsTable";
+import TransactionsTable, {
+  TransactionColumn,
+} from "../Transactions/TransactionsTable";
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
+import HeaderSearch from "../layout/Search/Index";
 
-const PREVIEW_LIMIT = 50;
+const PREVIEW_LIMIT = 10;
+
+// Card container styling matching Figma (same as UserTransactionsPreview)
+const transactionsCardSx = {
+  backgroundColor: "#16141A",
+  borderRadius: "24px",
+  border: "0.5px solid rgba(255,255,255,0.06)",
+  p: 4,
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+};
+
+// View all link styling (consistent with UserTransactionsPreview)
+const viewAllLinkSx = {
+  color: "#CDB9F9",
+  fontSize: "16px",
+  fontFamily: '"SF Pro", system-ui, sans-serif',
+  textDecoration: "none",
+  cursor: "pointer",
+  transition: "opacity 0.2s",
+  "&:hover": {
+    opacity: 0.8,
+  },
+  textTransform: "none",
+};
+
+const PREVIEW_COLUMNS: TransactionColumn[] = [
+  "version",
+  "status",
+  "type",
+  "hash",
+  "sender",
+  "amountGas",
+  "timestamp",
+];
 
 function TransactionContent({data}: UseQueryResult<Array<Types.Transaction>>) {
   if (!data) {
@@ -18,7 +56,7 @@ function TransactionContent({data}: UseQueryResult<Array<Types.Transaction>>) {
     return null;
   }
 
-  return <TransactionsTable transactions={data} />;
+  return <TransactionsTable transactions={data} columns={PREVIEW_COLUMNS} />;
 }
 
 export default function TransactionsPreview() {
@@ -31,24 +69,49 @@ export default function TransactionsPreview() {
   const augmentTo = useAugmentToWithGlobalSearchParams();
 
   return (
-    <>
-      <Stack spacing={2}>
-        <Typography variant="h5">All Transactions</Typography>
+    <Box sx={transactionsCardSx}>
+      <Stack spacing={3}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: {xs: "column", md: "row"},
+            justifyContent: "space-between",
+            alignItems: {xs: "flex-start", md: "center"},
+            gap: 2,
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              color: "#fff",
+              fontSize: "48px",
+              fontWeight: 700,
+              lineHeight: "48px",
+              fontFamily: '"SF Pro", system-ui, sans-serif',
+              whiteSpace: "nowrap",
+            }}
+          >
+            All Transactions
+          </Typography>
+          <Box sx={{width: {xs: "100%", md: "400px"}}}>
+            <HeaderSearch />
+          </Box>
+        </Box>
+
         <Box sx={{width: "auto", overflowX: "auto"}}>
           <TransactionContent {...result} />
         </Box>
 
-        <Box sx={{display: "flex", justifyContent: "center"}}>
+        <Box sx={{display: "flex", justifyContent: "center", pt: 2, pb: 2}}>
           <Button
             component={RRD.Link}
             to={augmentTo("/transactions")}
-            variant="primary"
-            sx={{margin: "0 auto", mt: 6}}
+            sx={viewAllLinkSx}
           >
-            View all Transactions
+            {"< View all transactions >"}
           </Button>
         </Box>
       </Stack>
-    </>
+    </Box>
   );
 }

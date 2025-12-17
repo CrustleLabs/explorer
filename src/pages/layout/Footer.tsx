@@ -7,10 +7,9 @@ import MediumLogo from "../../assets/medium.svg?react";
 import LinkedInLogo from "../../assets/linkedin.svg?react";
 import {grey} from "../../themes/colors/aptosColorPalette";
 import SvgIcon from "@mui/material/SvgIcon";
-
-import LogoFullLight from "../../assets/svg/crustle_logo_full_light.svg?react";
-import LogoFullDark from "../../assets/svg/crustle_logo_full_dark.svg?react";
+import Logo from "../../assets/logo-dark.svg";
 import {Link} from "../../routing";
+import FooterDecoration from "../../assets/footer_decoration.svg";
 
 const socialLinks = [
   {title: "Git", url: "https://github.com/CrustleLabs", icon: GithubLogo},
@@ -28,6 +27,42 @@ const socialLinks = [
   },
 ];
 
+const footerSections = [
+  {
+    title: "Company",
+    links: [
+      {label: "About Us", href: "#"},
+      {label: "Careers", href: "#"},
+      {label: "Brand Kit", href: "#"},
+      {label: "Blog", href: "#"},
+    ],
+  },
+  {
+    title: "Product",
+    links: [
+      {label: "Download", href: "#"},
+      {label: "Trade", href: "#"},
+      {label: "Documentation", href: "#"},
+      {label: "App Feedback", href: "#"},
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      {label: "Customer Support", href: "#"},
+      {label: "FAQs", href: "#"},
+      {label: "Contact Us", href: "#"},
+    ],
+  },
+  {
+    title: "Regulatory",
+    links: [
+      {label: "Terms of Use", href: "https://aptoslabs.com/terms"},
+      {label: "Privacy Policy", href: "https://aptoslabs.com/privacy"},
+    ],
+  },
+];
+
 export default function Footer() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -35,127 +70,146 @@ export default function Footer() {
   return (
     <Box
       sx={{
-        background: theme.palette.mode === "dark" ? grey[900] : "white",
-        color: theme.palette.mode === "dark" ? grey[100] : "rgba(18,22,21,1)",
+        background: "transparent",
+        color: isDark ? "#CCC" : grey[900],
+        pt: 8,
         mt: 8,
       }}
     >
-      <Container maxWidth="xl" sx={{paddingTop: "2rem", paddingBottom: "2rem"}}>
-        <Grid
-          container
-          gap={4}
-          alignContent="center"
-          alignItems="center"
-          direction={{xs: "column", md: "row"}}
-        >
-          <Grid
-            size={{xs: "auto"}}
-            gap={1}
-            container
-            alignItems={{xs: "center", md: "start"}}
-            direction="column"
-          >
-            <Link
-              color="inherit"
-              to="https://aptoslabs.com/"
-              target="_blank"
-              title="Crustle Labs"
-              sx={{width: "8rem", mr: {md: 2}}}
-            >
-              {isDark ? (
-                <LogoFullDark width="8rem" height="3rem" />
-              ) : (
-                <LogoFullLight width="8rem" height="3rem" />
-              )}
-            </Link>
-            <Grid container direction="row" padding="0" spacing={2}>
-              <Typography
-                sx={{
-                  textAlign: {
-                    xs: "center",
-                    md: "left",
-                    fontFamily: "apparat, Geneva, Tahoma, Verdana, sans-serif",
-                  },
-                }}
-                fontSize="0.8rem"
-              >
-                © {new Date().getFullYear()}{" "}
-                <Box component="span" sx={{whiteSpace: "nowrap"}}>
-                  Crustle Labs
-                </Box>
-              </Typography>
-              <Stack
-                direction="row"
-                spacing={1}
-                justifyContent={{xs: "center", md: "start"}}
-              >
-                <Link
-                  color="inherit"
-                  to="https://aptoslabs.com/privacy"
-                  target="_blank"
-                  sx={{
-                    fontSize: "0.8rem",
-                    fontFamily: "apparat, Geneva, Tahoma, Verdana, sans-serif",
-                  }}
-                >
-                  Privacy
-                </Link>
-                <Link
-                  color="inherit"
-                  to="https://aptoslabs.com/terms"
-                  target="_blank"
-                  sx={{
-                    fontSize: "0.8rem",
-                    fontFamily: "apparat, Geneva, Tahoma, Verdana, sans-serif",
-                  }}
-                >
-                  Terms
-                </Link>
-                <Link
-                  color="inherit"
-                  to="/verification"
-                  sx={{
-                    fontSize: "0.8rem",
-                    fontFamily: "apparat, Geneva, Tahoma, Verdana, sans-serif",
-                  }}
-                >
-                  Token & Address Verification
-                </Link>
-              </Stack>
-            </Grid>
-          </Grid>
-
-          <Grid
-            size={{xs: "auto"}}
-            sx={{marginLeft: {xs: "0", md: "auto"}}}
-            container
-            justifyContent="end"
-          >
-            <Grid
-              container
-              justifyContent={{xs: "center", md: "end"}}
-              spacing={3}
-              direction="row"
-            >
-              {socialLinks.map((link) => (
-                <Grid key={link.title}>
+      <Container
+        maxWidth={false}
+        sx={{
+          width: {xs: "95%", md: "62.5%"},
+          mx: "auto",
+          px: "0 !important",
+        }}
+      >
+        <Grid container spacing={4} justifyContent="space-between">
+          {/* Left Column */}
+          <Grid size={{xs: 12, md: 3}}>
+            <Stack spacing={4}>
+              {/* Logo */}
+              <Link to="/" color="inherit" underline="none">
+                <Box
+                  component="img"
+                  src={Logo}
+                  alt="Settle Explorer"
+                  sx={{height: "40px", width: "auto", display: "block"}}
+                />
+              </Link>
+              {/* Social Icons */}
+              <Stack direction="row" spacing={2}>
+                {socialLinks.map((link) => (
                   <Link
-                    color="inherit"
+                    key={link.title}
                     to={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     title={link.title}
-                    width="26px"
-                    sx={{display: "block"}}
+                    sx={{
+                      color: isDark ? "#999" : grey[600],
+                      "&:hover": {color: isDark ? "#FFF" : grey[900]},
+                      display: "block",
+                      lineHeight: 0,
+                    }}
                   >
-                    <SvgIcon component={link.icon} inheritViewBox />
+                    <SvgIcon
+                      component={link.icon}
+                      inheritViewBox
+                      sx={{fontSize: 24}}
+                    />
                   </Link>
+                ))}
+              </Stack>
+              {/* Copyright */}
+              <Typography
+                sx={{
+                  color: isDark ? "#666" : grey[500],
+                  fontSize: "12px",
+                  lineHeight: "16px",
+                  fontFamily: '"SF Pro", system-ui, sans-serif',
+                }}
+              >
+                Copyright © {new Date().getFullYear()} settle.xyz
+              </Typography>
+            </Stack>
+          </Grid>
+
+          {/* Right Columns (Links) */}
+          <Grid size={{xs: 12, md: 9}}>
+            <Grid container spacing={4} justifyContent={{md: "flex-end"}}>
+              {footerSections.map((section) => (
+                <Grid size={{xs: 6, sm: 3}} key={section.title}>
+                  <Stack spacing={2}>
+                    <Typography
+                      sx={{
+                        color: isDark ? "#fff" : grey[700],
+                        fontSize: "16px",
+                        fontWeight: 700,
+                        fontFamily: '"SF Pro", system-ui, sans-serif',
+                      }}
+                    >
+                      {section.title}
+                    </Typography>
+                    <Stack spacing={1.5}>
+                      {section.links.map((link) => (
+                        <Link
+                          key={link.label}
+                          to={link.href}
+                          sx={{
+                            color: isDark ? "#CCC" : grey[600],
+                            fontSize: "14px",
+                            fontWeight: 400,
+                            lineHeight: "18px",
+                            fontFamily: '"SF Pro", system-ui, sans-serif',
+                            textDecoration: "none",
+                            "&:hover": {
+                              color: isDark ? "#FFF" : grey[900],
+                            },
+                          }}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </Stack>
+                  </Stack>
                 </Grid>
               ))}
             </Grid>
           </Grid>
         </Grid>
+        <Typography
+          sx={{
+            mt: "60px",
+            color: "#666",
+            fontFamily: '"SF Pro Rounded", "SF Pro", system-ui, sans-serif',
+            fontSize: "14px",
+            fontStyle: "normal",
+            fontWeight: 400,
+            lineHeight: "22px", // 157.143%
+          }}
+        >
+          Global Markets tokens provide their holders with economic exposure to
+          the value of their underlying publicly traded assets, including the
+          value of dividends (less applicable tax withholdings). However, the
+          Tokens are not themselves stocks or ETFs, and they do not provide
+          their holders with rights to hold or receive their respective
+          underlying assets.
+        </Typography>
       </Container>
+      <Box
+        component="img"
+        src={FooterDecoration}
+        alt="Footer Decoration"
+        sx={{
+          width: "100%",
+          height: "auto",
+          display: "block",
+          mt: 8,
+          opacity: 0.8,
+          // You can adjust these styles once the real image is ready
+        }}
+      />
     </Box>
   );
 }

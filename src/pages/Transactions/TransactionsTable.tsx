@@ -50,6 +50,7 @@ function SequenceNumberCell({transaction}: TransactionCellProps) {
 }
 
 function TransactionVersionStatusCell({transaction}: TransactionCellProps) {
+  // Keeping for backward compatibility if used elsewhere, but ideally should be replaced
   return (
     <GeneralTableCell sx={{textAlign: "left"}}>
       <Stack direction="row" spacing={0.5}>
@@ -64,6 +65,65 @@ function TransactionVersionStatusCell({transaction}: TransactionCellProps) {
           <TableTransactionStatus success={transaction.success} />
         )}
       </Stack>
+    </GeneralTableCell>
+  );
+}
+
+function TransactionVersionCell({transaction}: TransactionCellProps) {
+  return (
+    <GeneralTableCell sx={{textAlign: "left"}}>
+      <Link
+        to={`/txn/${"version" in transaction && transaction.version}`}
+        color="primary"
+        underline="none"
+        sx={{
+          color: aptosColor,
+          fontSize: "14px",
+        }}
+      >
+        {"version" in transaction && transaction.version}
+      </Link>
+    </GeneralTableCell>
+  );
+}
+
+function TransactionStatusCell({transaction}: TransactionCellProps) {
+  if (!("success" in transaction))
+    return <GeneralTableCell>-</GeneralTableCell>;
+
+  const success = transaction.success;
+  return (
+    <GeneralTableCell>
+      <Box
+        sx={{
+          backgroundColor: success
+            ? "rgba(3,168,129,0.12)"
+            : "rgba(220, 41, 113, 0.12)",
+          border: success
+            ? "0.5px solid rgba(20,179,112,0.32)"
+            : "0.5px solid rgba(220, 41, 113, 0.32)",
+          borderRadius: "4px",
+          padding: "2px 8px",
+          color: success ? "#03a881" : "#DC2971",
+          fontSize: "14px",
+          fontFamily: '"SF Pro", sans-serif',
+          textAlign: "center",
+          display: "inline-block",
+          lineHeight: "18px",
+        }}
+      >
+        {success ? "Success" : "Failed"}
+      </Box>
+    </GeneralTableCell>
+  );
+}
+
+function TransactionHashCell({transaction}: TransactionCellProps) {
+  return (
+    <GeneralTableCell>
+      {"hash" in transaction && (
+        <HashButton hash={transaction.hash} type={HashType.TRANSACTION} />
+      )}
     </GeneralTableCell>
   );
 }
@@ -222,6 +282,9 @@ function TransactionAmountGasCell({
 const TransactionCells = Object.freeze({
   sequenceNum: SequenceNumberCell,
   versionStatus: TransactionVersionStatusCell,
+  version: TransactionVersionCell,
+  status: TransactionStatusCell,
+  hash: TransactionHashCell,
   type: TransactionTypeCell,
   timestamp: TransactionTimestampCell,
   sender: TransactionSenderCell,
@@ -230,7 +293,7 @@ const TransactionCells = Object.freeze({
   amountGas: TransactionAmountGasCell,
 });
 
-type TransactionColumn = keyof typeof TransactionCells;
+export type TransactionColumn = keyof typeof TransactionCells;
 
 const DEFAULT_COLUMNS: TransactionColumn[] = [
   "versionStatus",
@@ -299,6 +362,12 @@ function TransactionHeaderCell({column}: TransactionHeaderCellProps) {
       return <GeneralTableHeaderCell header="#" />;
     case "versionStatus":
       return <GeneralTableHeaderCell header="Version" />;
+    case "version":
+      return <GeneralTableHeaderCell header="Version" />;
+    case "status":
+      return <GeneralTableHeaderCell header="Status" />;
+    case "hash":
+      return <GeneralTableHeaderCell header="Hash" />;
     case "type":
       return (
         <GeneralTableHeaderCell

@@ -5,6 +5,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 
 export interface ColorModeContext {
   toggleColorMode: () => void;
+  mode: "light" | "dark";
 }
 
 type Mode = "light" | "dark";
@@ -16,7 +17,7 @@ const useProvideColorMode = () => {
     ? "dark"
     : "light";
 
-  const [mode, setMode] = useState<Mode>("light");
+  const [mode, setMode] = useState<Mode>("dark");
 
   useLayoutEffect(() => {
     const savedMode = localStorage.getItem("color_scheme") as Mode | null;
@@ -72,7 +73,7 @@ const useProvideColorMode = () => {
     },
   });
 
-  return {toggleColorMode, theme};
+  return {toggleColorMode, theme, mode};
 };
 
 export default useProvideColorMode;

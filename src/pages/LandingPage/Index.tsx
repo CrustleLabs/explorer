@@ -1,22 +1,32 @@
-import Typography from "@mui/material/Typography";
-import HeaderSearch from "../layout/Search/Index";
 import Box from "@mui/material/Box";
-import NetworkInfo from "../Analytics/NetworkInfo/NetworkInfo";
+
 import UserTransactionsPreview from "./UserTransactionsPreview";
 import {usePageMetadata} from "../../components/hooks/usePageMetadata";
-import {WalletDeprecationBanner} from "../../components/WalletDeprecationBanner";
+import NetworkInfoSection from "./NetworkInfoSection";
+import HeroSection from "./HeroSection";
+import OpenSourcePromo from "./OpenSourcePromo";
 
 export default function LandingPage() {
   usePageMetadata({});
   return (
-    <Box>
-      <WalletDeprecationBanner />
-      <Typography variant="h3" component="h3" marginBottom={4}>
-        Crustle Explorer
-      </Typography>
-      <NetworkInfo isOnHomePage />
-      <HeaderSearch />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+      }}
+    >
+      {/* Hero Section with gradient title and stats */}
+      <HeroSection />
+
+      {/* Network Info (Stats) Section */}
+      <NetworkInfoSection />
+
+      {/* Transactions Preview */}
       <UserTransactionsPreview />
+
+      {/* Open Source / Code Promo */}
+      <OpenSourcePromo />
     </Box>
   );
 }

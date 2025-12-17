@@ -35,11 +35,13 @@ import {
 import {getAssetSymbol, tryStandardizeAddress} from "../../../utils";
 import {getEmojicoinMarketAddressAndTypeTags} from "../../../components/Table/VerifiedCell";
 import {getBlockByHeight, getBlockByVersion} from "../../../api/v2";
+import SearchFocusPlaceholder from "./SearchFocusPlaceholder";
 
 export type SearchResult = {
   label: string;
   to: string | null;
   image?: string;
+  isInstruction?: boolean;
 };
 
 export const NotFoundResult: SearchResult = {
@@ -525,7 +527,7 @@ export default function HeaderSearch() {
     <Autocomplete
       open={open}
       sx={{
-        mb: {sm: 1, md: 2},
+        mb: 0,
         flexGrow: 1,
         width: "100%",
         "&.MuiAutocomplete-root .MuiFilledInput-root": {
@@ -550,16 +552,35 @@ export default function HeaderSearch() {
       clearOnBlur
       autoSelect={false}
       getOptionLabel={() => ""}
-      filterOptions={(x) => x.filter((x) => !!x)}
+      filterOptions={(x) => x}
       options={options}
       inputValue={inputValue}
       onInputChange={(event, newInputValue, reason) => {
-        setOpen(false);
+        if (reason === "input" && newInputValue.length === 0) {
+          setOptions([{label: "", isInstruction: true, to: null}]);
+          setOpen(true);
+          setInputValue("");
+          return;
+        }
+
         if (event && event.type === "blur") {
+          setOpen(false);
           setInputValue("");
         } else if (reason !== "reset") {
-          setMode(newInputValue.trim().length === 0 ? "idle" : "typing");
+          if (newInputValue.trim().length === 0) {
+            setOptions([{label: "", isInstruction: true, to: null}]);
+            setOpen(true);
+            setMode("idle");
+          } else {
+            setMode("typing");
+          }
           setInputValue(newInputValue);
+        }
+      }}
+      onFocus={() => {
+        if (inputValue.length === 0) {
+          setOptions([{label: "", isInstruction: true, to: null}]);
+          setOpen(true);
         }
       }}
       onKeyDown={(event) => {
@@ -571,7 +592,11 @@ export default function HeaderSearch() {
           event.preventDefault();
         }
       }}
-      onClose={() => setOpen(false)}
+      onClose={(e, reason) => {
+        if (reason !== "toggleInput") {
+          setOpen(false);
+        }
+      }}
       renderInput={(params) => {
         return (
           <SearchInput
@@ -581,6 +606,26 @@ export default function HeaderSearch() {
         );
       }}
       renderOption={(props, option) => {
+        if (option.isInstruction) {
+          // Remove onClick and other interactive props if possible, or override style
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const {onClick, ...otherProps} = props;
+          return (
+            <li
+              {...otherProps}
+              key="instruction"
+              style={{
+                ...otherProps.style,
+                pointerEvents: "none",
+                width: "100%",
+                padding: 0,
+                backgroundColor: "transparent",
+              }}
+            >
+              <SearchFocusPlaceholder />
+            </li>
+          );
+        }
         return (
           <li {...props} key={props.id}>
             <ResultLink

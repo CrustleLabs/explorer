@@ -12,7 +12,7 @@ import {
 import {ProvideColorMode} from "../../context";
 import {GraphqlClientProvider} from "../../api/hooks/useGraphqlClient";
 import {AptosWalletAdapterProvider} from "@aptos-labs/wallet-adapter-react";
-import {Network} from "@aptos-labs/ts-sdk";
+
 import {hiddenNetworks} from "../../constants";
 
 const AptosConnectId = "99d260d0-c69d-4c15-965f-f6f9b7b00102";
@@ -31,7 +31,8 @@ function ExplorerWalletAdapterProvider({children}: LayoutProps) {
       autoConnect={true}
       dappConfig={{
         aptosConnectDappId: AptosConnectId,
-        network: networkName as Network,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        network: networkName as any,
       }}
     >
       {children}
@@ -62,12 +63,15 @@ export default function ExplorerLayout({children}: LayoutProps) {
             >
               <Header />
               <Container
-                maxWidth="xl"
+                maxWidth={false}
                 sx={{
                   display: "flex",
                   flexDirection: "column",
                   flexGrow: 4,
                   paddingTop: "2rem",
+                  width: {xs: "95%", md: "62.5%"},
+                  mx: "auto",
+                  px: "0 !important",
                 }}
               >
                 <Suspense fallback={<Fallback />}>{children}</Suspense>

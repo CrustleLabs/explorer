@@ -1,6 +1,5 @@
 import {PropsWithChildren} from "react";
 import {SxProps, TableRow, useTheme} from "@mui/material";
-import {grey} from "../../themes/colors/aptosColorPalette";
 import {Link} from "../../routing";
 
 export default function GeneralTableRow({
@@ -16,7 +15,7 @@ export default function GeneralTableRow({
     textDecoration: "none",
     cursor: clickDisabled ? undefined : "pointer",
     userSelect: "none",
-    backgroundColor: `${theme.palette.mode === "dark" ? grey[800] : grey[50]}`,
+    backgroundColor: "transparent",
     "&:hover:not(:active)": clickDisabled
       ? undefined
       : {
