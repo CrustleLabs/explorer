@@ -9,7 +9,7 @@ import {grey} from "../../themes/colors/aptosColorPalette";
 import SvgIcon from "@mui/material/SvgIcon";
 import Logo from "../../assets/logo-dark.svg";
 import {Link} from "../../routing";
-import FooterDecoration from "../../assets/footer_decoration.svg";
+import FooterDecoration from "./FooterDecoration";
 
 const socialLinks = [
   {title: "Git", url: "https://github.com/CrustleLabs", icon: GithubLogo},
@@ -197,19 +197,7 @@ export default function Footer() {
           underlying assets.
         </Typography>
       </Container>
-      <Box
-        component="img"
-        src={FooterDecoration}
-        alt="Footer Decoration"
-        sx={{
-          width: "100%",
-          height: "auto",
-          display: "block",
-          mt: 8,
-          opacity: 0.8,
-          // You can adjust these styles once the real image is ready
-        }}
-      />
+      <FooterDecoration />
     </Box>
   );
 }
