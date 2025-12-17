@@ -1,4 +1,4 @@
-# Crustle Explorer
+# Settle Explorer
 
 ## How to use
 
