@@ -10,6 +10,10 @@ robots.txt
 .node-version
 .npmrc
 *.svg
+*.png
+*.jpg
+*.jpeg
+*.gif
 Dockerfile
 .dockerignore
 *.ttf

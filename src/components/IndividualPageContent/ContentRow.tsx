@@ -1,6 +1,5 @@
 import React from "react";
 import {Box, Grid} from "@mui/material";
-import {grey} from "../../themes/colors/aptosColorPalette";
 import EmptyValue from "./ContentValue/EmptyValue";
 
 type ContentRowProps = {
@@ -27,7 +26,13 @@ export default function ContentRow({
         key={i}
       >
         <Grid container size={{xs: 12, sm: 3}}>
-          <Box sx={{fontSize: "0.875rem", color: grey[450]}}>
+          <Box
+            sx={{
+              fontSize: "14px",
+              color: "#999",
+              fontFamily: '"SF Pro", sans-serif',
+            }}
+          >
             {title}
             <Box
               component="span"
@@ -44,8 +49,10 @@ export default function ContentRow({
         <Grid
           size={{xs: 12, sm: 9}}
           sx={{
-            fontSize: "0.8rem",
+            fontSize: "14px",
+            fontFamily: '"SF Pro", sans-serif',
             overflow: "auto",
+            color: "#fff", // Default value color
           }}
         >
           {value ? (

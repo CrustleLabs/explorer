@@ -1,6 +1,18 @@
-import * as React from "react";
 import {Types} from "aptos";
-import {Box} from "@mui/material";
+import {
+  Box,
+  Grid,
+  Stack,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Tooltip,
+  IconButton,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import moment from "moment";
 import HashButton, {HashType} from "../../../components/HashButton";
 import ContentBox from "../../../components/IndividualPageContent/ContentBox";
 import ContentRow from "../../../components/IndividualPageContent/ContentRow";
@@ -8,14 +20,9 @@ import {TransactionStatus} from "../../../components/TransactionStatus";
 import {getLearnMoreTooltip} from "../helpers";
 import TimestampValue from "../../../components/IndividualPageContent/ContentValue/TimestampValue";
 import {APTCurrencyValue} from "../../../components/IndividualPageContent/ContentValue/CurrencyValue";
-import GasValue from "../../../components/IndividualPageContent/ContentValue/GasValue";
-import GasFeeValue from "../../../components/IndividualPageContent/ContentValue/GasFeeValue";
 import {getTransactionAmount, getTransactionCounterparty} from "../utils";
 import TransactionFunction from "./Components/TransactionFunction";
-import TransactionBlockRow from "./Components/TransactionBlockRow";
 import JsonViewCard from "../../../components/IndividualPageContent/JsonViewCard";
-import {parseExpirationTimestamp} from "../../utils";
-import {grey} from "../../../themes/colors/aptosColorPalette";
 import {LearnMoreTooltip} from "../../../components/IndividualPageContent/LearnMoreTooltip";
 import {
   CoinDescription,
@@ -23,8 +30,11 @@ import {
 } from "../../../api/hooks/useGetCoinList";
 import {findCoinData} from "./BalanceChangeTab";
 import {useGetAssetMetadata} from "../../../api/hooks/useGetAssetMetadata";
+import {Link} from "../../../routing";
+import ActionDetailsRow from "./Components/ActionDetailsRow";
 import {Hex} from "@aptos-labs/ts-sdk";
-import DexOrderInfo from "./Components/DexOrderInfo";
+import {DexPayload} from "../../../utils/dex";
+import React from "react";
 
 type EconiaState = {
   orderID: string | undefined;
@@ -535,207 +545,604 @@ type UserTransactionOverviewTabProps = {
   transaction: Types.Transaction;
 };
 
+type ExtendedTransaction = Types.Transaction_UserTransaction & {
+  replay_protection_nonce?: string;
+  block_height?: string | number;
+};
+
+// Unified Layout Component
+function UnifiedLayout({
+  transactionData,
+  txnAny,
+}: {
+  transactionData: ExtendedTransaction;
+  txnAny: ExtendedTransaction;
+}) {
+  const isDex =
+    transactionData.payload?.type.split("::").pop() === "dex_payload";
+
+  const [copyTooltipOpen, setCopyTooltipOpen] = React.useState(false);
+
+  const copyHash = async (hash: string) => {
+    await navigator.clipboard.writeText(hash);
+    setCopyTooltipOpen(true);
+    setTimeout(() => {
+      setCopyTooltipOpen(false);
+    }, 2000);
+  };
+
+  return (
+    <Box marginBottom={3}>
+      {/* Top Stats Row - Always Visible */}
+      <Grid container spacing={1.5} marginBottom={4} alignItems="stretch">
+        <Grid size={{xs: 6, sm: 6, md: 3}} sx={{display: "flex"}}>
+          <Box
+            sx={{
+              backgroundColor: "#232227",
+              borderRadius: "12px",
+              p: "16px 20px",
+              height: "100%",
+              width: "100%",
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="#999"
+              display="block"
+              mb={1.5}
+              fontFamily='"SF Pro", sans-serif'
+              fontSize="12px"
+            >
+              Status
+            </Typography>
+            <TransactionStatus success={transactionData.success} />
+          </Box>
+        </Grid>
+        <Grid size={{xs: 6, sm: 6, md: 3}} sx={{display: "flex"}}>
+          <Box
+            sx={{
+              backgroundColor: "#232227",
+              borderRadius: "12px",
+              p: "16px 20px",
+              height: "100%",
+              width: "100%",
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="#999"
+              display="block"
+              mb={1.5}
+              fontFamily='"SF Pro", sans-serif'
+              fontSize="12px"
+            >
+              Block
+            </Typography>
+            {txnAny.block_height ? (
+              <Link
+                to={`/block/${txnAny.block_height}`}
+                color="inherit"
+                underline="none"
+              >
+                <Typography
+                  variant="body1"
+                  fontWeight={700}
+                  fontFamily='"SF Pro", sans-serif'
+                  color="#fff"
+                  fontSize="18px"
+                >
+                  {Number(txnAny.block_height).toLocaleString()}
+                </Typography>
+              </Link>
+            ) : (
+              <Typography
+                variant="body1"
+                color="#fff"
+                fontSize="18px"
+                fontWeight={700}
+              >
+                -
+              </Typography>
+            )}
+          </Box>
+        </Grid>
+        <Grid size={{xs: 6, sm: 6, md: 3}} sx={{display: "flex"}}>
+          <Box
+            sx={{
+              backgroundColor: "#232227",
+              borderRadius: "12px",
+              p: "16px 20px",
+              height: "100%",
+              width: "100%",
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="#999"
+              display="block"
+              mb={1.5}
+              fontFamily='"SF Pro", sans-serif'
+              fontSize="12px"
+            >
+              Time
+            </Typography>
+            <Typography
+              variant="body1"
+              fontWeight={700}
+              fontFamily='"SF Pro", sans-serif'
+              color="#fff"
+              fontSize="18px"
+            >
+              {moment(
+                Math.floor(Number(transactionData.timestamp) / 1000),
+              ).fromNow()}
+            </Typography>
+          </Box>
+        </Grid>
+        <Grid size={{xs: 6, sm: 6, md: 3}} sx={{display: "flex"}}>
+          <Box
+            sx={{
+              backgroundColor: "#232227",
+              borderRadius: "12px",
+              p: "16px 20px",
+              height: "100%",
+              width: "100%",
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="#999"
+              display="block"
+              mb={1.5}
+              fontFamily='"SF Pro", sans-serif'
+              fontSize="12px"
+            >
+              Type
+            </Typography>
+            <Typography
+              variant="body1"
+              fontWeight={700}
+              fontFamily='"SF Pro", sans-serif'
+              color="#fff"
+              fontSize="18px"
+            >
+              {transactionData.payload.type.split("::").pop() === "dex_payload"
+                ? "Order"
+                : transactionData.payload.type.split("::").pop() ||
+                  "Transaction"}
+            </Typography>
+          </Box>
+        </Grid>
+      </Grid>
+
+      {/* Transaction Details (Only for DEX) */}
+      {isDex && (
+        <Box
+          sx={{
+            backgroundColor: "#16141A",
+            border: "0.5px solid rgba(255, 255, 255, 0.06)",
+            borderRadius: "24px",
+            p: "20px",
+            mt: 4,
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1.5} mb={4}>
+            <Box
+              sx={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "50%",
+                backgroundColor: "#E5F3FF", // Lighter background color
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                style={{
+                  width: 24,
+                  height: 24,
+                }}
+              >
+                <path
+                  d="M5.5 9.47139C6.94445 7.66667 9.44809 5.5 12.0006 5.5C15.3459 5.5 18.1009 8.02742 18.4603 11.277M5.5 9.47139V6.22139M5.5 9.47139H8.75M5.54129 12.7249C5.90198 15.9732 8.65633 18.4991 12.0006 18.4991C14.5514 18.4991 17.0556 16.3333 18.5 14.5269M18.5 14.5269V17.7769M18.5 14.5269H15.25"
+                  stroke="black"
+                  strokeWidth="1.86667"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Box>
+            <Typography
+              variant="h6"
+              fontFamily='"SF Pro", sans-serif'
+              fontWeight={700}
+              fontSize="20px"
+              color="#fff"
+            >
+              Transaction Details
+            </Typography>
+          </Stack>
+
+          <Stack spacing={3}>
+            <Box>
+              <Typography
+                sx={{
+                  color: "#999",
+                  fontSize: "14px",
+                  mb: 1,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                User
+              </Typography>
+              <HashButton
+                hash={transactionData.sender}
+                type={HashType.ACCOUNT}
+              />
+            </Box>
+
+            {(transactionData.payload as unknown as DexPayload).orders[0] && (
+              <Box>
+                <Typography
+                  sx={{
+                    color: "#999",
+                    fontSize: "14px",
+                    mb: 1,
+                    fontFamily: '"SF Pro", sans-serif',
+                  }}
+                >
+                  Subaccount
+                </Typography>
+                <HashButton
+                  hash={
+                    (transactionData.payload as unknown as DexPayload).orders[0]
+                      .subaccount
+                  }
+                  type={HashType.ACCOUNT}
+                />
+              </Box>
+            )}
+
+            <Box>
+              <Typography
+                sx={{
+                  color: "#999",
+                  fontSize: "14px",
+                  mb: 1.5,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                Hash
+              </Typography>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{
+                  backgroundColor: "rgba(182,146,244,0.16)",
+                  border: "0.5px solid rgba(217,203,251,0.12)",
+                  borderRadius: "40px",
+                  padding: "6px 14px",
+                  width: "fit-content",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "#fff",
+                    fontSize: "14px",
+                    fontFamily: '"SF Pro", sans-serif',
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {transactionData.hash}
+                </Typography>
+                <Tooltip title="Copied" open={copyTooltipOpen} arrow>
+                  <IconButton
+                    onClick={() => copyHash(transactionData.hash)}
+                    sx={{
+                      padding: 0,
+                      color: "rgba(255, 255, 255, 0.6)",
+                      "&:hover": {color: "#fff"},
+                    }}
+                  >
+                    <ContentCopyIcon sx={{fontSize: 16}} />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography
+                sx={{
+                  color: "#999",
+                  fontSize: "14px",
+                  mb: 1,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                Action details
+              </Typography>
+              <ActionDetailsRow transaction={transactionData} />
+            </Box>
+
+            <Box>
+              <Typography
+                sx={{
+                  color: "#999",
+                  fontSize: "14px",
+                  mb: 1,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                Status
+              </Typography>
+              <Box
+                sx={{
+                  display: "inline-block",
+                  padding: "4px 12px",
+                  borderRadius: "6px",
+                  backgroundColor: "rgba(224, 131, 78, 0.16)",
+                  color: "#E0834E",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  textTransform: "capitalize",
+                }}
+              >
+                Filled
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography
+                sx={{
+                  color: "#999",
+                  fontSize: "14px",
+                  mb: 1,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                Version
+              </Typography>
+              <Typography
+                sx={{
+                  color: "#fff",
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                {transactionData.version}
+              </Typography>
+            </Box>
+
+            <Box>
+              <Typography
+                sx={{
+                  color: "#999",
+                  fontSize: "14px",
+                  mb: 1,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                Timestamp
+              </Typography>
+              <TimestampValue
+                timestamp={transactionData.timestamp}
+                ensureMilliSeconds
+              />
+            </Box>
+          </Stack>
+
+          {/* Transaction Metadata Accordion (Figma Styling) */}
+          <Accordion
+            sx={{
+              mt: 4,
+              backgroundColor: "transparent",
+              backgroundImage: "none",
+              boxShadow: "none",
+              "&:before": {display: "none"},
+              "& .MuiAccordionSummary-root": {
+                padding: 0,
+                minHeight: "48px",
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+              },
+            }}
+          >
+            <AccordionSummary
+              expandIcon={
+                <ExpandMoreIcon sx={{color: "rgba(255,255,255,0.4)"}} />
+              }
+            >
+              <Typography
+                sx={{
+                  color: "#999",
+                  fontSize: "14px",
+                  fontFamily: '"SF Pro", sans-serif',
+                  lineHeight: "18px",
+                }}
+              >
+                Transaction Data
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{px: 0, pt: 2}}>
+              <Box
+                sx={{
+                  backgroundColor: "#232227",
+                  borderRadius: "16px",
+                  p: "16px", // 16px as per Figma
+                  overflow: "hidden",
+                }}
+              >
+                <JsonViewCard data={transactionData.payload} hideBackground />
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+      )}
+
+      {/* Standard Content for Non-DEX (wrapped in same styled box for consistency if requested later, but keeping as is for now) */}
+      {!isDex && (
+        <ContentBox>
+          <ContentRow
+            title="Hash"
+            value={
+              <HashButton
+                hash={transactionData.hash}
+                type={HashType.TRANSACTION}
+              />
+            }
+            tooltip={getLearnMoreTooltip("hash")}
+          />
+          <ContentRow
+            title="Sender"
+            value={
+              <HashButton
+                hash={transactionData.sender}
+                type={HashType.ACCOUNT}
+              />
+            }
+            tooltip={getLearnMoreTooltip("sender")}
+          />
+          <ContentRow
+            title="Sequence Number"
+            value={transactionData.sequence_number}
+            tooltip={getLearnMoreTooltip("sequence_number")}
+          />
+          <ContentRow
+            title="Expiration Timestamp"
+            value={
+              <TimestampValue
+                timestamp={transactionData.expiration_timestamp_secs}
+                ensureMilliSeconds={false}
+              />
+            }
+            tooltip={getLearnMoreTooltip("expiration_timestamp_secs")}
+          />
+          <ContentRow
+            title="Timestamp"
+            value={
+              <TimestampValue
+                timestamp={transactionData.timestamp}
+                ensureMilliSeconds={true}
+              />
+            }
+            tooltip={getLearnMoreTooltip("timestamp")}
+          />
+          {/* Gas info */}
+          <ContentRow
+            title="Gas Fee"
+            value={<APTCurrencyValue amount={transactionData.gas_unit_price} />}
+          />
+          <ContentRow title="Gas Used" value={transactionData.gas_used} />
+          <ContentRow
+            title="Max Gas Limit"
+            value={transactionData.max_gas_amount}
+          />
+
+          <TransactionActionsRow transaction={transactionData} />
+          <UserTransferOrInteractionRows transaction={transactionData} />
+          <TransactionFunctionRow transaction={transactionData} />
+          <TransactionAmountRow transaction={transactionData} />
+
+          {/* Details/Signatures */}
+          <ContentRow
+            title="Signature"
+            value={
+              <JsonViewCard
+                data={transactionData.signature}
+                collapsedByDefault
+              />
+            }
+            tooltip={getLearnMoreTooltip("signature")}
+          />
+        </ContentBox>
+      )}
+
+      {/* Transaction Data (Collapsible) - Hide for DEX since we have the simplified version above */}
+      {!isDex && (
+        <Box mb={4} mt={4}>
+          <Accordion
+            sx={{
+              backgroundColor: "transparent",
+              backgroundImage: "none",
+              boxShadow: "none",
+              "&:before": {display: "none"},
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{color: "#999"}} />}
+              sx={{padding: 0, minHeight: 48}}
+            >
+              <Typography
+                variant="h6"
+                fontFamily='"SF Pro", sans-serif'
+                fontWeight={700}
+              >
+                Transaction Data
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{padding: 0}}>
+              <ContentBox>
+                <ContentRow
+                  title="Signature:"
+                  value={
+                    <JsonViewCard
+                      data={transactionData.signature}
+                      collapsedByDefault
+                    />
+                  }
+                  tooltip={getLearnMoreTooltip("signature")}
+                />
+                <ContentRow
+                  title="State Change Hash:"
+                  value={transactionData.state_change_hash}
+                  tooltip={getLearnMoreTooltip("state_change_hash")}
+                />
+                <ContentRow
+                  title="Event Root Hash:"
+                  value={transactionData.event_root_hash}
+                  tooltip={getLearnMoreTooltip("event_root_hash")}
+                />
+                <ContentRow
+                  title="Accumulator Root Hash:"
+                  value={transactionData.accumulator_root_hash}
+                  tooltip={getLearnMoreTooltip("accumulator_root_hash")}
+                />
+                {transactionData.payload && (
+                  <ContentRow
+                    title="Payload"
+                    value={
+                      <JsonViewCard
+                        data={transactionData.payload}
+                        collapsedByDefault
+                      />
+                    }
+                  />
+                )}
+              </ContentBox>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 export default function UserTransactionOverviewTab({
   transaction,
 }: UserTransactionOverviewTabProps) {
   // TODO: Get off SDK V1, this is just a patch
-  const transactionData = transaction as Types.Transaction_UserTransaction & {
-    replay_protection_nonce?: string;
-  };
+  const transactionData = transaction as ExtendedTransaction;
 
-  // TODO: pass into gas fee value to reduce searches
-  const feeStatement = transactionData?.events?.find(
-    (e) => e.type === "0x1::transaction_fee::FeeStatement",
-  );
-  let feePayer: string | undefined;
-  if (
-    transactionData?.signature &&
-    "fee_payer_address" in transactionData.signature
-  ) {
-    feePayer = transactionData.signature.fee_payer_address;
-  }
+  const txnAny = transaction as ExtendedTransaction;
 
-  let secondarySigners: string[] | undefined;
-  if (
-    transactionData?.signature &&
-    "secondary_signer_addresses" in transactionData.signature
-  ) {
-    secondarySigners = transactionData.signature.secondary_signer_addresses;
-  }
-
-  return (
-    <Box marginBottom={3}>
-      {/* DEX Order Info - 显示在 Version 上方 */}
-      <DexOrderInfo transaction={transactionData} />
-
-      <ContentBox padding={4}>
-        <ContentRow
-          title={"Version:"}
-          value={<Box sx={{fontWeight: 600}}>{transactionData.version}</Box>}
-          tooltip={getLearnMoreTooltip("version")}
-        />
-        <ContentRow
-          title="Status:"
-          value={<TransactionStatus success={transactionData.success} />}
-          tooltip={getLearnMoreTooltip("status")}
-        />
-        <ContentRow
-          title="Sender:"
-          value={
-            <HashButton hash={transactionData.sender} type={HashType.ACCOUNT} />
-          }
-          tooltip={getLearnMoreTooltip("sender")}
-        />
-        {feePayer && (
-          <ContentRow
-            title="Fee Payer:"
-            value={<HashButton hash={feePayer} type={HashType.ACCOUNT} />}
-            tooltip={getLearnMoreTooltip("fee_payer")}
-          />
-        )}
-        {secondarySigners && secondarySigners.length > 0 && (
-          <ContentRow
-            title="Secondary Signers:"
-            value={secondarySigners.map((address) => (
-              <HashButton hash={address} type={HashType.ACCOUNT} />
-            ))}
-            tooltip={getLearnMoreTooltip("secondary_signers")}
-          />
-        )}
-        <UserTransferOrInteractionRows transaction={transactionData} />
-        <TransactionFunctionRow transaction={transactionData} />
-        <TransactionAmountRow transaction={transactionData} />
-        <TransactionActionsRow transaction={transactionData} />
-      </ContentBox>
-      <ContentBox>
-        <TransactionBlockRow version={transactionData.version} />
-        {!transactionData?.replay_protection_nonce && (
-          <ContentRow
-            title="Sequence Number:"
-            value={transactionData.sequence_number}
-            tooltip={getLearnMoreTooltip("sequence_number")}
-          />
-        )}
-        {transactionData?.replay_protection_nonce && (
-          <ContentRow
-            title="Replay Protection Nonce:"
-            value={transactionData.replay_protection_nonce}
-            tooltip={getLearnMoreTooltip("replay_protection_nonce")}
-          />
-        )}
-        <ContentRow
-          title="Expiration Timestamp:"
-          value={
-            <TimestampValue
-              timestamp={parseExpirationTimestamp(
-                transactionData.expiration_timestamp_secs,
-              )}
-              ensureMilliSeconds={false}
-            />
-          }
-          tooltip={getLearnMoreTooltip("expiration_timestamp_secs")}
-        />
-        <ContentRow
-          title="Timestamp:"
-          value={
-            <TimestampValue
-              timestamp={transactionData.timestamp}
-              ensureMilliSeconds
-            />
-          }
-          tooltip={getLearnMoreTooltip("timestamp")}
-        />
-        <ContentRow
-          title="Gas Fee:"
-          value={
-            <GasFeeValue
-              gasUsed={transactionData.gas_used}
-              gasUnitPrice={transactionData.gas_unit_price}
-              showGasUsed
-              transactionData={transactionData}
-            />
-          }
-          tooltip={getLearnMoreTooltip("gas_fee")}
-        />
-        {(feeStatement?.data?.storage_fee_refund_octas ?? 0) > 0 ? (
-          <>
-            <ContentRow
-              title="Storage Refund:"
-              value={
-                <GasFeeValue
-                  gasUsed={transactionData.gas_used}
-                  gasUnitPrice={transactionData.gas_unit_price}
-                  showGasUsed
-                  transactionData={transactionData}
-                  storageRefund={true}
-                />
-              }
-              tooltip={getLearnMoreTooltip("storage_refund")}
-            />
-            <ContentRow
-              title="Net Gas Changes:"
-              value={
-                <GasFeeValue
-                  gasUsed={transactionData.gas_used}
-                  gasUnitPrice={transactionData.gas_unit_price}
-                  showGasUsed
-                  transactionData={transactionData}
-                  netGasCost
-                />
-              }
-              tooltip={getLearnMoreTooltip("net_gas_fee")}
-            />
-          </>
-        ) : null}
-        <ContentRow
-          title="Gas Unit Price:"
-          value={
-            <>
-              <APTCurrencyValue amount={transactionData.gas_unit_price} />{" "}
-              <span style={{color: grey[450]}}>
-                ({transactionData.gas_unit_price} Octas)
-              </span>
-            </>
-          }
-          tooltip={getLearnMoreTooltip("gas_unit_price")}
-        />
-        <ContentRow
-          title="Max Gas Limit:"
-          value={<GasValue gas={transactionData.max_gas_amount} />}
-          tooltip={getLearnMoreTooltip("max_gas_amount")}
-        />
-        <ContentRow
-          title="VM Status:"
-          value={transactionData.vm_status}
-          tooltip={getLearnMoreTooltip("vm_status")}
-        />
-      </ContentBox>
-      <ContentBox>
-        <ContentRow
-          title="Signature:"
-          value={
-            <JsonViewCard data={transactionData.signature} collapsedByDefault />
-          }
-          tooltip={getLearnMoreTooltip("signature")}
-        />
-        <ContentRow
-          title="State Change Hash:"
-          value={transactionData.state_change_hash}
-          tooltip={getLearnMoreTooltip("state_change_hash")}
-        />
-        <ContentRow
-          title="Event Root Hash:"
-          value={transactionData.event_root_hash}
-          tooltip={getLearnMoreTooltip("event_root_hash")}
-        />
-        <ContentRow
-          title="Accumulator Root Hash:"
-          value={transactionData.accumulator_root_hash}
-          tooltip={getLearnMoreTooltip("accumulator_root_hash")}
-        />
-      </ContentBox>
-    </Box>
-  );
+  // Use UnifiedLayout for all transactions
+  return <UnifiedLayout transactionData={transactionData} txnAny={txnAny} />;
 }
 
 const SwapActionContent = ({

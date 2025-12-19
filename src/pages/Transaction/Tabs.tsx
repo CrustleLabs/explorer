@@ -1,47 +1,29 @@
-import * as React from "react";
-import {Box} from "@mui/material";
+import {Box, Grid} from "@mui/material";
 import {Types} from "aptos";
 import {assertNever} from "../../utils";
 import StyledTabs from "../../components/StyledTabs";
 import StyledTab from "../../components/StyledTab";
+import TransactionSidebar from "./Sidebar";
 import UserTransactionOverviewTab from "./Tabs/UserTransactionOverviewTab";
 import BlockMetadataOverviewTab from "./Tabs/BlockMetadataOverviewTab";
 import StateCheckpointOverviewTab from "./Tabs/StateCheckpointOverviewTab";
 import PendingTransactionOverviewTab from "./Tabs/PendingTransactionOverviewTab";
 import GenesisTransactionOverviewTab from "./Tabs/GenesisTransactionOverviewTab";
-import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import EventsTab from "./Tabs/EventsTab";
 import PayloadTab from "./Tabs/PayloadTab";
 import ChangesTab from "./Tabs/ChangesTab";
 import UnknownTab from "./Tabs/UnknownTab";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import CallMergeOutlinedIcon from "@mui/icons-material/CallMergeOutlined";
-import FileCopyOutlinedIcon from "@mui/icons-material/FileCopyOutlined";
-import CodeOutlinedIcon from "@mui/icons-material/CodeOutlined";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import BalanceChangeTab from "./Tabs/BalanceChangeTab";
 import {useParams} from "react-router-dom";
 import {useNavigate} from "../../routing";
 import ValidatorTransactionTab from "./Tabs/ValidatorTransactionTab";
 import {TransactionTypeName} from "../../components/TransactionType";
 import BlockEpilogueOverviewTab from "./Tabs/BlockEpilogueOverviewTab";
-import ContentRow from "../../components/IndividualPageContent/ContentRow";
-import JsonViewCard from "../../components/IndividualPageContent/JsonViewCard";
-import {getLearnMoreTooltip} from "./helpers";
-import ContentBox from "../../components/IndividualPageContent/ContentBox";
-import {useGlobalState} from "../../global-config/GlobalConfig";
-import {Link} from "../../routing";
 
 function getTabValues(transaction: Types.Transaction): TabValue[] {
   switch (transaction.type) {
     case TransactionTypeName.User:
-      return [
-        "userTxnOverview",
-        "balanceChange",
-        "events",
-        "payload",
-        "changes",
-      ];
+      return ["userTxnOverview", "events", "payload"];
     case TransactionTypeName.BlockMetadata:
       return ["blockMetadataOverview", "events", "changes"];
     case TransactionTypeName.StateCheckpoint:
@@ -100,31 +82,6 @@ function getTabLabel(value: TabValue): string {
   }
 }
 
-function getTabIcon(value: TabValue): React.JSX.Element {
-  switch (value) {
-    case "userTxnOverview":
-    case "blockMetadataOverview":
-    case "blockEpilogueOverview":
-    case "stateCheckpointOverview":
-    case "pendingTxnOverview":
-    case "genesisTxnOverview":
-    case "validatorTxnOverview":
-      return <BarChartOutlinedIcon fontSize="small" />;
-    case "balanceChange":
-      return <AccountBalanceWalletOutlinedIcon fontSize="small" />;
-    case "events":
-      return <CallMergeOutlinedIcon fontSize="small" />;
-    case "payload":
-      return <FileCopyOutlinedIcon fontSize="small" />;
-    case "changes":
-      return <CodeOutlinedIcon fontSize="small" />;
-    case "unknown":
-      return <HelpOutlineOutlinedIcon fontSize="small" />;
-    default:
-      return assertNever(value);
-  }
-}
-
 type TabPanelProps = {
   value: TabValue;
   transaction: Types.Transaction;
@@ -144,8 +101,6 @@ export default function TransactionTabs({
   transaction,
   tabValues = getTabValues(transaction),
 }: TransactionTabsProps): React.JSX.Element {
-  const [globalState] = useGlobalState();
-
   const {tab, txnHashOrVersion} = useParams();
   const navigate = useNavigate();
   const value =
@@ -163,7 +118,6 @@ export default function TransactionTabs({
             <StyledTab
               key={i}
               value={value}
-              icon={getTabIcon(value)}
               label={getTabLabel(value)}
               isFirst={i === 0}
               isLast={i === tabValues.length - 1}
@@ -171,28 +125,25 @@ export default function TransactionTabs({
           ))}
         </StyledTabs>
       </Box>
-      <Box>
-        <TabPanel value={value} transaction={transaction} />
-      </Box>
-      <ContentBox>
-        <ContentRow
-          title="Full Txn (for debug):"
-          value={<JsonViewCard data={transaction} collapsedByDefault />}
-          tooltip={getLearnMoreTooltip("transaction")}
-        />
-        <ContentRow
-          title="API link:"
-          value={
-            <Link
-              color="inherit"
-              to={`https://fullnode.${globalState.network_name.toLowerCase()}.aptoslabs.com/v1/transactions/by_hash/${transaction.hash}`}
-            >
-              Transaction ${transaction.hash}
-            </Link>
-          }
-          tooltip={getLearnMoreTooltip("transaction")}
-        />
-      </ContentBox>
+      <Grid container spacing={3} marginTop={2}>
+        {/* Only show Sidebar and 2-column layout if it is a Dex transaction */}
+        {transaction.type === "user_transaction" &&
+        (transaction as Types.UserTransaction).payload?.type ===
+          "dex_payload" ? (
+          <>
+            <Grid size={{xs: 12, md: 8}}>
+              <TabPanel value={value} transaction={transaction} />
+            </Grid>
+            <Grid size={{xs: 12, md: 4}}>
+              <TransactionSidebar transaction={transaction} />
+            </Grid>
+          </>
+        ) : (
+          <Grid size={{xs: 12}}>
+            <TabPanel value={value} transaction={transaction} />
+          </Grid>
+        )}
+      </Grid>
     </Box>
   );
 }
