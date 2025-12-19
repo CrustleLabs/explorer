@@ -1,95 +1,88 @@
-import React, {useLayoutEffect, useRef} from "react";
-import {Box} from "@mui/material";
-import FooterDecorationSvg from "../../assets/footer_decoration.svg";
+import {Box, keyframes} from "@mui/material";
+import React from "react";
+import footerDecoration from "../../assets/footer_decoration.png";
+
+const spotlightAnimation = keyframes`
+  0% {
+    transform: translate(-50%, -50%) translate(-350px, 0px);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(350px, 100px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(0px, 200px);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(-350px, 100px);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(-350px, 0px);
+  }
+`;
 
 export default function FooterDecoration() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  // Animation state stored in refs to avoid re-renders
-  const animState = useRef({
-    x: 50, // Current X %
-    y: 50, // Current Y %
-    targetX: 50, // Target X %
-    targetY: 50, // Target Y %
-    speed: 0.1, // Lerp speed (0.05 to 0.2 for smooth movement)
-  });
-  const requestRef = useRef<number | null>(null);
-
-  useLayoutEffect(() => {
-    const pickNewTarget = () => {
-      // Pick random percentage between 10% and 90% to keep it mostly visible
-      animState.current.targetX = 10 + Math.random() * 80;
-      animState.current.targetY = 20 + Math.random() * 60; // Keep Y a bit more centered vertically
-      // Randomize speed slightly for variety - Reverted to moderate speed
-      animState.current.speed = 0.005 + Math.random() * 0.01;
-    };
-
-    const animate = () => {
-      const state = animState.current;
-
-      // Linear interpolation (Lerp)
-      const dx = state.targetX - state.x;
-      const dy = state.targetY - state.y;
-
-      // Move towards target
-      state.x += dx * state.speed;
-      state.y += dy * state.speed;
-
-      // Check if close enough to target to pick a new one
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 1) {
-        pickNewTarget();
-      }
-
-      // Apply mask directly to DOM
-      if (imgRef.current) {
-        const maskStyle = `radial-gradient(circle 400px at ${state.x}% ${state.y}%, black 0%, transparent 70%)`;
-        imgRef.current.style.maskImage = maskStyle;
-        imgRef.current.style.webkitMaskImage = maskStyle;
-      }
-
-      requestRef.current = requestAnimationFrame(animate);
-    };
-
-    pickNewTarget();
-    requestRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (requestRef.current !== null) {
-        cancelAnimationFrame(requestRef.current);
-      }
-    };
-  }, []);
-
   return (
     <Box
-      ref={containerRef}
       sx={{
         position: "relative",
-        width: "100%",
-        height: "auto",
-        mt: 8,
-        overflow: "hidden",
-        pointerEvents: "none", // No interaction needed anymore
+        width: "1200px",
+        maxWidth: "100%",
+        display: "flex",
+        justifyContent: "center",
+        overflow: "hidden", // Restore overflow hidden to prevent scrollbar jitter
+        marginTop: "100px",
+        zIndex: 0,
+        pointerEvents: "none",
+        marginX: "auto",
       }}
     >
+      {/* Invisible image to reserve space/height */}
       <Box
-        ref={imgRef}
         component="img"
-        src={FooterDecorationSvg}
-        alt="Footer Decoration"
+        src={footerDecoration}
+        alt=""
         sx={{
           width: "100%",
           height: "auto",
-          display: "block",
-          opacity: 0.8,
-          // Initial mask
-          maskImage: `radial-gradient(circle 400px at 50% 50%, black 0%, transparent 70%)`,
-          WebkitMaskImage: `radial-gradient(circle 400px at 50% 50%, black 0%, transparent 70%)`,
-          willChange: "mask-image", // Hint for optimization
+          opacity: 0,
+          visibility: "hidden",
         }}
       />
+
+      {/* Masked Spotlight Layer */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          maskImage: `url(${footerDecoration})`,
+          WebkitMaskImage: `url(${footerDecoration})`,
+          maskSize: "contain",
+          WebkitMaskSize: "contain",
+          maskRepeat: "no-repeat",
+          WebkitMaskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskPosition: "center",
+        }}
+      >
+        {/* Spotlight Effect */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            width: "656.863px",
+            height: "658px",
+            borderRadius: "658px",
+            background: "rgba(217, 203, 251, 0.60)",
+            filter: "blur(88.28423309326172px)",
+            animation: `${spotlightAnimation} 8s infinite linear`,
+            opacity: 0.8,
+          }}
+        />
+      </Box>
     </Box>
   );
 }

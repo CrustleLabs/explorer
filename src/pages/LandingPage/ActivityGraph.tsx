@@ -1,10 +1,15 @@
 import Box from "@mui/material/Box";
 import {useEffect, useState, useRef} from "react";
+
 import {useGlobalState} from "../../global-config/GlobalConfig";
 import {getLedgerInfo} from "../../api";
 import {useQuery} from "@tanstack/react-query";
 import {SxProps} from "@mui/material";
 import ScrollingCodeBackground from "./ScrollingCodeBackground";
+import Tooltip, {tooltipClasses, TooltipProps} from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
+import {styled} from "@mui/material/styles";
+import moment from "moment";
 
 // Activity grid colors from Figma
 const ACTIVITY_COLORS = [
@@ -14,27 +19,57 @@ const ACTIVITY_COLORS = [
   "#D9CBFB", // Light Purple
   "#CDB9F9", // Medium Purple
   "#B692F4", // Darker Purple
+  "#2C2835", // Adding this black color as a placeholder for unknown/empty
 ];
 
 const getActivityColor = (txCount: number) => {
-  const index = Math.min(Math.floor(txCount / 2), ACTIVITY_COLORS.length - 1);
+  if (txCount === -1) return ACTIVITY_COLORS[6]; // Placeholder color
+  const index = Math.min(Math.floor(txCount / 2), ACTIVITY_COLORS.length - 2); // -1 for index, -1 for last color reservation
   return ACTIVITY_COLORS[index];
 };
 
 interface GridItem {
   id: number;
   txCount: number;
+  blockHeight?: string;
+  timestamp?: string; // microseconds
+  status?: string;
+  hash?: string;
 }
 
 interface ActivityGraphProps {
   sx?: SxProps;
 }
 
+const truncateHash = (hash?: string) => {
+  if (!hash) return "Unknown";
+  return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
+};
+
+const CustomTooltip = styled(({className, ...props}: TooltipProps) => (
+  <Tooltip {...props} classes={{popper: className}} />
+))(() => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: "#111111", // Darker background
+    color: "#fff",
+    border: "1px solid #333",
+    borderRadius: "12px",
+    padding: "16px",
+    fontSize: "13px",
+    maxWidth: 260,
+    boxShadow: "0px 4px 20px rgba(0,0,0,0.5)",
+  },
+}));
+
 export default function ActivityGraph({sx}: ActivityGraphProps) {
   const [state] = useGlobalState();
   const containerRef = useRef<HTMLDivElement>(null);
   const [gridDimensions, setGridDimensions] = useState({rows: 9, cols: 0});
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
+
+  // Refs for hover pause logic
+  const isHoveringRef = useRef(false);
+  const pendingItemsRef = useRef<GridItem[]>([]);
 
   // Calculate grid dimensions based on container width
   useEffect(() => {
@@ -79,7 +114,7 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
         if (i < prev.length) return prev[i];
         return {
           id: i, // simple id for initial
-          txCount: 0,
+          txCount: -1, // -1 indicating empty/placeholder
         };
       });
       return newItems;
@@ -118,37 +153,74 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
 
       try {
         const promises = [];
-        // Limit fetching to a reasonable amount if grid is huge, but here we just fetch needed blocks
-        // For the visual updates (adding new dots), we only need 1 per block typically?
-        // Actually the logic below maps 1 block -> 1 dot shift.
-        // We fetch range.
         for (let h = startHeight; h <= endHeight; h++) {
           promises.push(state.aptos_client.getBlockByHeight(h, false));
         }
 
         const newBlocks = await Promise.all(promises);
 
-        setGridItems((prev) => {
-          let updated = [...prev];
-          newBlocks.forEach((block) => {
-            const txCount =
-              parseInt(block.last_version) - parseInt(block.first_version) + 1;
-
-            // Add new item at the start and remove the last one
-            updated = [
-              {id: Date.now() + Math.random(), txCount}, // Add new at start
-              ...updated.slice(0, updated.length - 1), // Remove last
-            ];
-          });
-          return updated;
+        // Process new blocks into items
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newItems: GridItem[] = newBlocks.map((block: any) => {
+          const txCount =
+            parseInt(block.last_version) - parseInt(block.first_version) + 1;
+          return {
+            id: Date.now() + Math.random(),
+            txCount,
+            blockHeight: block.block_height,
+            timestamp: block.block_timestamp,
+            hash: block.block_hash,
+            status: "Success",
+          };
         });
+
+        if (isHoveringRef.current) {
+          // If hovering, accumulate updates without rendering
+          pendingItemsRef.current = [...pendingItemsRef.current, ...newItems];
+        } else {
+          // If not hovering, apply updates immediately
+          setGridItems((prev) => {
+            // We need to apply newItems sequentially: oldest first so they get pushed down?
+            // No, visual order: standard approach is prepend new items.
+            // newBlocks is [H, H+1, ...]. H+1 is newer.
+            // We want H+1 to be at index 0, H at index 1... finally.
+            // So for [A, B] (A older, B newer), we want output [B, A, ...prev]
+
+            // We reverse newItems so newest is first in the list to be prepended
+            const updatesToAdd = [...newItems].reverse();
+            const updatedList = [...updatesToAdd, ...prev];
+            // Enforce strictly the total size derived from dimensions
+            const limit = gridDimensions.rows * gridDimensions.cols;
+            return updatedList.slice(0, limit);
+          });
+        }
       } catch {
         // ignore errors
       }
     };
 
     fetchBlocks();
-  }, [currentHeight, state.aptos_client, gridItems.length]); // Add gridItems.length dep to ensure we have initialized grid
+  }, [currentHeight, state.aptos_client, gridItems.length, gridDimensions]); // Add gridDimensions to update if resized
+
+  const handleMouseEnter = () => {
+    isHoveringRef.current = true;
+  };
+
+  const handleMouseLeave = () => {
+    isHoveringRef.current = false;
+    // Flush pending items
+    if (pendingItemsRef.current.length > 0) {
+      setGridItems((prev) => {
+        // pendingItems are in fetch order (oldest to newest)
+        // We want newest to be at the top.
+        const updatesToAdd = [...pendingItemsRef.current].reverse();
+        const updatedList = [...updatesToAdd, ...prev];
+        const limit = gridDimensions.rows * gridDimensions.cols;
+        return updatedList.slice(0, limit);
+      });
+      pendingItemsRef.current = [];
+    }
+  };
 
   return (
     <Box
@@ -175,9 +247,17 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
         {/* Container for the dots with black background */}
         {gridDimensions.cols > 0 && (
           <Box
+            // Attach hover handlers to the grid container
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             sx={{
               display: "grid",
-              gridTemplateColumns: `repeat(${gridDimensions.cols}, 14px)`, // Dynamic columns
+              // Sync columns with current items to prevent incomplete rows during resize
+              gridTemplateColumns: `repeat(${
+                gridItems.length > 0
+                  ? Math.floor(gridItems.length / gridDimensions.rows)
+                  : gridDimensions.cols
+              }, 14px)`,
               gap: "6px",
               alignContent: "center",
               justifyContent: "center",
@@ -191,16 +271,79 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
             }}
           >
             {gridItems.map((item) => (
-              <Box
+              <CustomTooltip
                 key={item.id}
-                sx={{
-                  width: "14px",
-                  height: "14px",
-                  borderRadius: "50%", // Circular
-                  backgroundColor: getActivityColor(item.txCount),
-                  transition: "background-color 0.5s ease",
-                }}
-              />
+                title={
+                  item.blockHeight ? (
+                    <Box sx={{minWidth: "180px"}}>
+                      {/* Header: Block Height & Time */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          mb: 2,
+                        }}
+                      >
+                        <Typography
+                          fontWeight="700"
+                          fontSize="14px"
+                          color="#fff"
+                        >
+                          Block {item.blockHeight}
+                        </Typography>
+                        <Typography fontSize="12px" color="#888">
+                          {moment(parseInt(item.timestamp!) / 1000).format(
+                            "HH:mm:ss",
+                          )}
+                        </Typography>
+                      </Box>
+
+                      {/* Txs */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          mb: 1,
+                        }}
+                      >
+                        <Typography fontSize="12px" color="#888">
+                          Txs
+                        </Typography>
+                        <Typography fontSize="12px" color="#fff">
+                          {item.txCount}
+                        </Typography>
+                      </Box>
+
+                      {/* Hash (Proposer removed) */}
+                      <Box
+                        sx={{display: "flex", justifyContent: "space-between"}}
+                      >
+                        <Typography fontSize="12px" color="#888">
+                          Hash
+                        </Typography>
+                        <Typography fontSize="12px" color="#888">
+                          {truncateHash(item.hash)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ) : (
+                    ""
+                  )
+                }
+                placement="top"
+              >
+                <Box
+                  sx={{
+                    width: "14px",
+                    height: "14px",
+                    borderRadius: "50%",
+                    backgroundColor: getActivityColor(item.txCount),
+                    transition: "background-color 0.5s ease",
+                    cursor: item.blockHeight ? "pointer" : "default",
+                  }}
+                />
+              </CustomTooltip>
             ))}
           </Box>
         )}

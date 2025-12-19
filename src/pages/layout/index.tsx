@@ -12,6 +12,7 @@ import {
 import {ProvideColorMode} from "../../context";
 import {GraphqlClientProvider} from "../../api/hooks/useGraphqlClient";
 import {AptosWalletAdapterProvider} from "@aptos-labs/wallet-adapter-react";
+import {DexDataPreloader} from "../../api/hooks/DexDataPreloader";
 
 import {hiddenNetworks} from "../../constants";
 
@@ -51,6 +52,7 @@ export default function ExplorerLayout({children}: LayoutProps) {
       <GlobalStateProvider>
         <ExplorerWalletAdapterProvider>
           <GraphqlClientProvider>
+            <DexDataPreloader />
             <Box
               component="main"
               sx={{

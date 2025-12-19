@@ -157,15 +157,7 @@ export default function NetworkInfoSection() {
         <Grid size={{xs: 12, md: 3}}>
           <StatsCard
             label="Total Stake"
-            value={
-              totalVotingPower
-                ? getFormattedBalanceStr(
-                    totalVotingPower.toString(),
-                    undefined,
-                    0,
-                  )
-                : "-"
-            }
+            value={totalVotingPower ? formatSupply(totalVotingPower) : "-"}
             tooltip="Amount of APT tokens currently held in staking pools."
           />
         </Grid>

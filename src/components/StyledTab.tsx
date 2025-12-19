@@ -1,6 +1,5 @@
 import * as React from "react";
-import {Tab, TabProps, useTheme} from "@mui/material";
-import {grey} from "../themes/colors/aptosColorPalette";
+import {Tab, TabProps} from "@mui/material";
 
 interface StyledTabProps extends TabProps {
   isFirst: boolean;
@@ -14,34 +13,40 @@ export default function StyledTab({
   secondary,
   ...props
 }: StyledTabProps) {
-  const theme = useTheme();
-  // TODO: unify colors for the new transaction page
-  let backgroundColor;
-  if (!secondary) {
-    backgroundColor = theme.palette.mode === "dark" ? grey[800] : grey[50];
-  } else {
-    backgroundColor = theme.palette.mode === "dark" ? grey[700] : grey[200];
-  }
+  // Use unused props to suppress lint errors if they are needed for API compatibility but not used in logic
+  void isFirst;
+  void isLast;
+  void secondary;
 
   return (
     <Tab
       sx={{
-        minHeight: 60,
+        minHeight: "44px", // Adjusted to fit container
         textTransform: "none",
-        fontSize: {xs: "small", md: "medium"},
-        paddingX: 3,
-        color: grey[450],
-        minWidth: {xs: 0, md: "200px"},
+        fontSize: "18px",
+        fontFamily: '"SF Pro", sans-serif',
+        fontWeight: 400,
+        lineHeight: "22px",
+        paddingX: "24px",
+        paddingY: "10px",
+        color: "#999",
+        minWidth: "172px",
+        borderRadius: "120px",
+        marginRight: 0,
+        zIndex: 1,
+        transition: "all 0.2s ease-in-out",
         "&.Mui-selected": {
-          color: "inherit",
-          backgroundColor: backgroundColor,
+          color: "#CDB9F9",
+          backgroundColor: "rgba(205, 185, 249, 0.12)",
+          border: "0.5px solid rgba(255, 255, 255, 0.06)",
+          fontSize: "20px",
+          fontWeight: 700,
+          lineHeight: "24px",
         },
-        borderTopLeftRadius: isFirst ? "15px 15px" : "",
-        borderBottomLeftRadius: isFirst ? "15px 15px" : "",
-        borderTopRightRadius: isLast ? "15px 15px" : "",
-        borderBottomRightRadius: isLast ? "15px 15px" : "",
-        border: 1,
-        borderColor: backgroundColor,
+        "&:hover": {
+          color: "#fff",
+          backgroundColor: "rgba(255,255,255,0.05)",
+        },
         flexGrow: {xs: 1, md: 0},
       }}
       iconPosition="start"

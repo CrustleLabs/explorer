@@ -1,5 +1,4 @@
-import {Box, useTheme} from "@mui/material";
-import React from "react";
+import {Box, useTheme, SxProps, Theme} from "@mui/material";
 import ReactJson from "react-json-view";
 import {codeBlockColor} from "../../themes/colors/aptosColorPalette";
 import EmptyValue from "./ContentValue/EmptyValue";
@@ -41,14 +40,17 @@ function useJsonViewCardTheme() {
 }
 
 type JsonViewCardProps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: object | null | undefined;
   collapsedByDefault?: boolean;
+  hideBackground?: boolean;
+  sx?: SxProps<Theme>;
 };
 
 export default function JsonViewCard({
   data,
   collapsedByDefault,
+  hideBackground,
+  sx,
 }: JsonViewCardProps) {
   const theme = useTheme();
   const jsonViewCardTheme = useJsonViewCardTheme();
@@ -60,11 +62,12 @@ export default function JsonViewCard({
   return (
     <Box
       sx={{
-        backgroundColor: codeBlockColor,
+        backgroundColor: hideBackground ? "transparent" : codeBlockColor,
         overflow: "auto",
         maxHeight: MAX_CARD_HEIGHT,
+        ...sx,
       }}
-      padding={2}
+      padding={hideBackground ? 0 : 2}
       borderRadius={1}
     >
       <ReactJson

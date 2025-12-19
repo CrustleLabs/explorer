@@ -1,4 +1,4 @@
-import {useQuery} from "@tanstack/react-query";
+import {useQuery, UseQueryOptions} from "@tanstack/react-query";
 import {ResponseError} from "../../api/client";
 import {useGlobalState} from "../../global-config/GlobalConfig";
 import {getBlockByHeight, getBlockByVersion} from "../v2";
@@ -25,9 +25,11 @@ export function useGetBlockByHeight({
 export function useGetBlockByVersion({
   version,
   withTransactions = true,
+  options,
 }: {
   version: number;
   withTransactions?: boolean;
+  options?: Omit<UseQueryOptions<Block, ResponseError>, "queryKey" | "queryFn">;
 }) {
   const [state] = useGlobalState();
 
@@ -35,5 +37,6 @@ export function useGetBlockByVersion({
     queryKey: ["block", version, state.network_value],
     queryFn: () =>
       getBlockByVersion({version, withTransactions}, state.sdk_v2_client),
+    ...options,
   });
 }

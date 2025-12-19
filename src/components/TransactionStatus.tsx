@@ -4,12 +4,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutlined";
 import PriorityHighOutlinedIcon from "@mui/icons-material/PriorityHighOutlined";
 
-// TODO: unify the colors
-const SUCCESS_COLOR = "#00BFA5";
-const SUCCESS_BACKGROUND_COLOR = "rgba(0,191,165,0.1)";
-const ERROR_COLOR = "#F97373";
-const ERROR_BACKGROUND_COLOR = "rgba(249,115,115,0.1)";
-
 type TransactionStatusProps = {
   success: boolean;
 };
@@ -19,21 +13,27 @@ export function TransactionStatus({success}: TransactionStatusProps) {
     <Stack
       direction="row"
       spacing={1}
-      paddingY={0.7}
+      paddingX={1.5}
+      paddingY={0.5}
       alignItems="center"
       justifyContent="center"
       sx={{
-        backgroundColor: SUCCESS_BACKGROUND_COLOR,
-        width: 114,
+        backgroundColor: "rgba(3, 168, 129, 0.12)",
+        border: "1px solid rgba(3, 168, 129, 0.2)",
+        borderRadius: "100px", // Pill shape
+        width: "fit-content",
       }}
-      borderRadius={1}
     >
-      <CheckCircleIcon
-        fontSize="small"
-        titleAccess="Executed successfully"
-        sx={{color: SUCCESS_COLOR}}
-      />
-      <Typography variant="body2" sx={{color: SUCCESS_COLOR}}>
+      <CheckCircleIcon sx={{color: "#03A881", fontSize: 16}} />
+      <Typography
+        variant="body2"
+        sx={{
+          color: "#03A881",
+          fontWeight: 600,
+          fontSize: "12px",
+          fontFamily: '"SF Pro", sans-serif',
+        }}
+      >
         Success
       </Typography>
     </Stack>
@@ -41,22 +41,28 @@ export function TransactionStatus({success}: TransactionStatusProps) {
     <Stack
       direction="row"
       spacing={1}
-      paddingY={0.7}
+      paddingX={1.5}
+      paddingY={0.5}
       alignItems="center"
       justifyContent="center"
       sx={{
-        backgroundColor: ERROR_BACKGROUND_COLOR,
-        width: 90,
+        backgroundColor: "rgba(220, 41, 113, 0.12)",
+        border: "1px solid rgba(220, 41, 113, 0.2)",
+        borderRadius: "100px", // Pill shape
+        width: "fit-content",
       }}
-      borderRadius={1}
     >
-      <ErrorOutlinedIcon
-        fontSize="small"
-        titleAccess="Failed to Execute"
-        sx={{color: ERROR_COLOR}}
-      />
-      <Typography variant="body2" sx={{color: ERROR_COLOR}}>
-        Fail
+      <ErrorOutlinedIcon sx={{color: "#DC2971", fontSize: 16}} />
+      <Typography
+        variant="body2"
+        sx={{
+          color: "#DC2971",
+          fontWeight: 600,
+          fontSize: "12px",
+          fontFamily: '"SF Pro", sans-serif',
+        }}
+      >
+        Failed
       </Typography>
     </Stack>
   );
