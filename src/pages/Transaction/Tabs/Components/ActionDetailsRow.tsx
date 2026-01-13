@@ -1,7 +1,5 @@
 import React from "react";
 import {Box, Stack, Typography} from "@mui/material";
-import {Types} from "aptos";
-import {useGetPerpetuals} from "../../../../api/hooks/useGetPerpetuals";
 import {
   DexPayload,
   calculatePriceAndSize,
@@ -14,30 +12,19 @@ import {useGetLeverageTiers} from "../../../../api/hooks/useGetLeverageTiers";
 import BTCIcon from "../../../../assets/svg/perps/btc.svg?react";
 
 interface ActionDetailsRowProps {
-  transaction: Types.Transaction;
+  order: DexPayload["orders"][0];
+  perpetuals: import("../../../../api/hooks/useGetPerpetuals").Perpetual[];
+  sender: string;
 }
 
-export default function ActionDetailsRow({transaction}: ActionDetailsRowProps) {
-  const {data: perpetuals, isLoading: isPerpsLoading} = useGetPerpetuals();
+export default function ActionDetailsRow({
+  order,
+  perpetuals,
+  sender,
+}: ActionDetailsRowProps) {
   const {data: leverageTiersMap} = useGetLeverageTiers();
-
-  const sender =
-    transaction.type === "user_transaction"
-      ? (transaction as Types.UserTransaction).sender
-      : "";
   const {data: dexAccount} = useGetDexAccount(sender);
 
-  if (
-    !("payload" in transaction) ||
-    transaction.payload.type !== "dex_payload" ||
-    isPerpsLoading ||
-    !perpetuals
-  ) {
-    return null;
-  }
-
-  const payload = transaction.payload as unknown as DexPayload;
-  const order = payload.orders[0];
   const perpetual = perpetuals.find((p) => p.perpetual_id === order.symbol_id);
 
   if (!perpetual) return null;

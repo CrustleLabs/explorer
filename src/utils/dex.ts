@@ -12,7 +12,7 @@ export const positiveColor = "#4ade80"; // Green (Long/Buy)
 export const redColor = negativeColor; // Red (Short/Sell)
 
 export type DexPayload = {
-  type: "dex_payload";
+  type: "dex_orderless_payload";
   orders: Array<{
     subaccount: string;
     symbol_id: number;
@@ -42,10 +42,9 @@ export function calculatePriceAndSize(
   order: {quantums: string; subticks: string},
   perpetual: Perpetual,
 ) {
-  // size = quantums × 10^(quantum_conversion_exponent)
+  // size = quantums × 10^(base_atomic_resolution)
   const size =
-    Number(order.quantums) *
-    Math.pow(10, perpetual.quantum_conversion_exponent);
+    Number(order.quantums) * Math.pow(10, perpetual.base_atomic_resolution);
 
   // price = subticks / subtick_multiplier
   const subtickMultiplier = Math.pow(

@@ -19,11 +19,21 @@ import {useNavigate} from "../../routing";
 import ValidatorTransactionTab from "./Tabs/ValidatorTransactionTab";
 import {TransactionTypeName} from "../../components/TransactionType";
 import BlockEpilogueOverviewTab from "./Tabs/BlockEpilogueOverviewTab";
+import AllTransactionsSection from "./Tabs/Components/AllTransactionsSection";
 
 function getTabValues(transaction: Types.Transaction): TabValue[] {
+  // For DEX/Order transactions, exclude "changes" tab
+  if (
+    transaction.type === TransactionTypeName.User &&
+    (transaction as Types.UserTransaction).payload?.type ===
+      "dex_orderless_payload"
+  ) {
+    return ["userTxnOverview", "events", "payload"];
+  }
+
   switch (transaction.type) {
     case TransactionTypeName.User:
-      return ["userTxnOverview", "events", "payload"];
+      return ["userTxnOverview", "events", "payload", "changes"];
     case TransactionTypeName.BlockMetadata:
       return ["blockMetadataOverview", "events", "changes"];
     case TransactionTypeName.StateCheckpoint:
@@ -129,13 +139,17 @@ export default function TransactionTabs({
         {/* Only show Sidebar and 2-column layout if it is a Dex transaction */}
         {transaction.type === "user_transaction" &&
         (transaction as Types.UserTransaction).payload?.type ===
-          "dex_payload" ? (
+          "dex_orderless_payload" ? (
           <>
             <Grid size={{xs: 12, md: 8}}>
               <TabPanel value={value} transaction={transaction} />
             </Grid>
             <Grid size={{xs: 12, md: 4}}>
               <TransactionSidebar transaction={transaction} />
+            </Grid>
+            {/* All Transactions Section - Full Width Below */}
+            <Grid size={{xs: 12}}>
+              <AllTransactionsSection transaction={transaction} />
             </Grid>
           </>
         ) : (

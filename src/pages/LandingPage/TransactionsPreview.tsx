@@ -12,6 +12,7 @@ import TransactionsTable, {
 } from "../Transactions/TransactionsTable";
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 import HeaderSearch from "../layout/Search/Index";
+import {SkeletonTable} from "../../components/SkeletonBlock";
 
 const PREVIEW_LIMIT = 10;
 
@@ -50,10 +51,12 @@ const PREVIEW_COLUMNS: TransactionColumn[] = [
   "timestamp",
 ];
 
-function TransactionContent({data}: UseQueryResult<Array<Types.Transaction>>) {
-  if (!data) {
-    // TODO: error handling!
-    return null;
+function TransactionContent({
+  data,
+  isLoading,
+}: UseQueryResult<Array<Types.Transaction>> & {isLoading?: boolean}) {
+  if (isLoading || !data) {
+    return <SkeletonTable rowCount={10} />;
   }
 
   return <TransactionsTable transactions={data} columns={PREVIEW_COLUMNS} />;

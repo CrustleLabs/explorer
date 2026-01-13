@@ -44,7 +44,7 @@ export default function AccountInfoSection({
 
   if (
     !("payload" in transaction) ||
-    transaction.payload.type !== "dex_payload" ||
+    transaction.payload.type !== "dex_orderless_payload" ||
     isLoadingPerps ||
     !perpetuals
   ) {

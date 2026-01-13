@@ -42,7 +42,7 @@ export default function HeroSection() {
     <Box sx={heroCardSx}>
       <Grid container spacing={4} alignItems="flex-start">
         {/* Left Side: Title, Info, Legend */}
-        <Grid size={{xs: 12, md: 5}}>
+        <Grid size={{xs: 12, md: 4}}>
           <Box
             sx={{
               display: "flex",
@@ -58,7 +58,7 @@ export default function HeroSection() {
 
               <Typography
                 variant="body1"
-                sx={{color: "#999", mt: 1, fontSize: "16px"}}
+                sx={{color: "#999", mt: 3, fontSize: "16px"}}
               >
                 Real-time visualization of network activity
               </Typography>
@@ -112,32 +112,85 @@ export default function HeroSection() {
                 ))}
               </Box>
               <Box sx={{display: "flex", alignItems: "center", gap: 0.5}}>
-                <Typography variant="body2" sx={{color: "#999"}}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#999",
+                    fontSize: "18px",
+                    fontWeight: "400",
+                    lineHeight: "18px",
+                  }}
+                >
                   Low
                 </Typography>
-                <Typography variant="body2" sx={{color: "#999"}}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#FFF",
+                    fontSize: "18px",
+                    fontWeight: "400",
+                    lineHeight: "18px",
+                  }}
+                >
                   &gt;
                 </Typography>
-                <Typography variant="body2" sx={{color: "#fff"}}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#D9CBFB",
+                    fontSize: "18px",
+                    fontWeight: "400",
+                    lineHeight: "18px",
+                  }}
+                >
                   High
                 </Typography>
               </Box>
               {/* Dashed line below legend */}
-              <Box
-                sx={{
-                  borderBottom: "1px dashed rgba(255,255,255,0.2)",
-                  mt: 2,
-                  width: "141px",
-                }}
-              />
+              <Box sx={{mt: 2}}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="142"
+                  height="1"
+                  viewBox="0 0 142 1"
+                  fill="none"
+                >
+                  <path
+                    d="M0 0.25H141.5"
+                    stroke="url(#paint0_linear_776_6258)"
+                    strokeWidth="0.5"
+                    strokeDasharray="2 2"
+                  />
+                  <defs>
+                    <linearGradient
+                      id="paint0_linear_776_6258"
+                      x1="0"
+                      y1="0.75"
+                      x2="141.5"
+                      y2="0.75"
+                      gradientUnits="userSpaceOnUse"
+                    >
+                      <stop stopColor="white" stopOpacity="0" />
+                      <stop offset="1" stopColor="white" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </Box>
             </Box>
           </Box>
         </Grid>
 
         {/* Right Side: Visualization Grid */}
-        <Grid size={{xs: 12, md: 7}}>
-          <Box sx={{mt: {md: 7}}}>
-            <ActivityGraph />
+        <Grid size={{xs: 12, md: 8}}>
+          <Box
+            sx={{
+              mt: {md: 9},
+              width: "100%",
+              aspectRatio: "770/235",
+              overflow: "hidden",
+            }}
+          >
+            <ActivityGraph sx={{width: "100%", height: "100%"}} />
           </Box>
         </Grid>
       </Grid>

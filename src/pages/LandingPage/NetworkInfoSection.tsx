@@ -1,6 +1,9 @@
 import {Box, Grid, Typography, Stack, Tooltip} from "@mui/material";
 import React from "react";
 import {useGlobalState} from "../../global-config/GlobalConfig";
+import SkeletonBlock, {
+  SkeletonStatsValue,
+} from "../../components/SkeletonBlock";
 import {useQuery} from "@tanstack/react-query";
 import {getLedgerInfo} from "../../api";
 import {useGetCoinSupplyLimit} from "../../api/hooks/useGetCoinSupplyLimit";
@@ -20,14 +23,14 @@ const cardSx = {
   flexDirection: "column",
   height: "100%",
   justifyContent: "space-between",
-  gap: 6, // 48px gap as requested
+  gap: "36px",
 };
 
 const labelSx = {
   color: "#fff",
   fontSize: "14px",
   fontFamily: '"SF Pro", sans-serif',
-  lineHeight: 1,
+  lineHeight: "18px",
 };
 
 const valueSx = {
@@ -35,17 +38,19 @@ const valueSx = {
   fontSize: "32px",
   fontWeight: 700,
   fontFamily: '"Sora", sans-serif',
-  lineHeight: 1.2,
+  lineHeight: "40px",
 };
 
 function StatsCard({
   label,
   value,
   tooltip,
+  isLoading = false,
 }: {
   label: string;
   value: React.ReactNode;
   tooltip?: string;
+  isLoading?: boolean;
 }) {
   return (
     <Box sx={cardSx}>
@@ -58,7 +63,11 @@ function StatsCard({
         )}
       </Stack>
       <Box>
-        <Typography sx={valueSx}>{value}</Typography>
+        {isLoading ? (
+          <SkeletonStatsValue />
+        ) : (
+          <Typography sx={valueSx}>{value}</Typography>
+        )}
       </Box>
     </Box>
   );
@@ -131,18 +140,20 @@ export default function NetworkInfoSection() {
         <Typography variant="body1" sx={{color: "#999", fontSize: "16px"}}>
           Total Transactions
         </Typography>
-        <Typography
-          sx={{
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: "24px",
-            fontFamily: '"Sora", sans-serif',
-          }}
-        >
-          {ledgerVersion
-            ? parseInt(ledgerVersion).toLocaleString("en-US")
-            : "-"}
-        </Typography>
+        {ledgerVersion ? (
+          <Typography
+            sx={{
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "24px",
+              fontFamily: '"Sora", sans-serif',
+            }}
+          >
+            {parseInt(ledgerVersion).toLocaleString("en-US")}
+          </Typography>
+        ) : (
+          <SkeletonBlock width={120} height={24} />
+        )}
       </Box>
 
       {/* Stats Grid */}
@@ -152,13 +163,15 @@ export default function NetworkInfoSection() {
             label="Total Supply"
             value={totalSupply ? formatSupply(totalSupply) : "-"}
             tooltip="Amount of APT tokens flowing through the Aptos network."
+            isLoading={!totalSupply}
           />
         </Grid>
         <Grid size={{xs: 12, md: 3}}>
           <StatsCard
-            label="Total Stake"
+            label="Actively Staked"
             value={totalVotingPower ? formatSupply(totalVotingPower) : "-"}
             tooltip="Amount of APT tokens currently held in staking pools."
+            isLoading={!totalVotingPower}
           />
         </Grid>
         <Grid size={{xs: 12, md: 3}}>
@@ -166,17 +179,19 @@ export default function NetworkInfoSection() {
             label="TPS"
             value={tps ? getFormattedTPS(tps) : "-"}
             tooltip="Current rate of transactions per second on the network."
+            isLoading={!tps}
           />
         </Grid>
         <Grid size={{xs: 12, md: 3}}>
           <StatsCard
-            label="Active Validators"
+            label="Active Nodes"
             value={
               numberOfActiveValidators
                 ? numberOfActiveValidators.toLocaleString("en-US")
                 : "-"
             }
             tooltip="Number of validators in the validator set in the current epoch."
+            isLoading={!numberOfActiveValidators}
           />
         </Grid>
       </Grid>

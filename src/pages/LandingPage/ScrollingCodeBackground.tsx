@@ -222,7 +222,7 @@ export default function ScrollingCodeBackground() {
         overflow: "hidden",
         pointerEvents: "none",
         userSelect: "none",
-        opacity: 0.4, // Increased visibility
+        opacity: 0.1, // Reduced visibility to prevent distraction
       }}
     >
       <Box

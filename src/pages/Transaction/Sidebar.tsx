@@ -8,7 +8,6 @@ import TimestampValue from "../../components/IndividualPageContent/ContentValue/
 import {APTCurrencyValue} from "../../components/IndividualPageContent/ContentValue/CurrencyValue";
 import {useGlobalState} from "../../global-config/GlobalConfig";
 import CubeIcon from "../../assets/svg/cube.svg?react";
-import AccountInfoSection from "./Tabs/Components/AccountInfoSection";
 
 type SidebarProps = {
   transaction: Types.Transaction;
@@ -57,7 +56,12 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
     setTimeout(() => setTooltipOpen(false), 2000);
   };
 
-  if (txn.payload?.type === "dex_payload") {
+  if (txn.payload?.type === "dex_orderless_payload") {
+    // Placeholder values - these would come from an API in a real implementation
+    const totalValue = 14670.65;
+    const unrealizedPnl = -4670.65;
+    const totalPnl = -4670.65;
+
     return (
       <Box
         sx={{
@@ -111,7 +115,154 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
             Account Information
           </Typography>
         </Stack>
-        <AccountInfoSection transaction={transaction} />
+
+        <Stack spacing={3}>
+          {/* User Address */}
+          <Box>
+            <Typography
+              sx={{
+                color: "#666",
+                fontSize: "11px",
+                mb: 0.5,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              User
+            </Typography>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{
+                backgroundColor: "rgba(182,146,244,0.16)",
+                border: "0.5px solid rgba(217,203,251,0.12)",
+                borderRadius: "40px",
+                padding: "6px 12px",
+                width: "fit-content",
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                {txn.sender
+                  ? `${txn.sender.slice(0, 6)}...${txn.sender.slice(-6)}`
+                  : "-"}
+              </Typography>
+              <Tooltip
+                title="Copied"
+                open={tooltipOpen}
+                disableFocusListener
+                disableHoverListener
+                disableTouchListener
+                placement="right"
+              >
+                <Box
+                  component="span"
+                  onClick={(e) => handleCopy(e, txn.sender || "")}
+                  sx={{
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    color: "rgba(255, 255, 255, 0.6)",
+                    "&:hover": {
+                      color: "#FFFFFF",
+                    },
+                  }}
+                >
+                  <ContentCopyIcon sx={{fontSize: 14}} />
+                </Box>
+              </Tooltip>
+            </Stack>
+          </Box>
+
+          {/* Total Value */}
+          <Box>
+            <Typography
+              sx={{
+                color: "#666",
+                fontSize: "11px",
+                mb: 0.5,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              Total Value
+            </Typography>
+            <Typography
+              sx={{
+                color: "#fff",
+                fontSize: "24px",
+                fontWeight: 700,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              $
+              {totalValue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Typography>
+          </Box>
+
+          {/* Unrealized P&L */}
+          <Box>
+            <Typography
+              sx={{
+                color: "#666",
+                fontSize: "11px",
+                mb: 0.5,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              Unrealized P&L
+            </Typography>
+            <Typography
+              sx={{
+                color: unrealizedPnl >= 0 ? "#03A881" : "#DC2971",
+                fontSize: "24px",
+                fontWeight: 700,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              {unrealizedPnl >= 0 ? "+" : ""}$
+              {unrealizedPnl.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Typography>
+          </Box>
+
+          {/* Total P&L */}
+          <Box>
+            <Typography
+              sx={{
+                color: "#666",
+                fontSize: "11px",
+                mb: 0.5,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              Total P&L
+            </Typography>
+            <Typography
+              sx={{
+                color: totalPnl >= 0 ? "#03A881" : "#DC2971",
+                fontSize: "24px",
+                fontWeight: 700,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              {totalPnl >= 0 ? "+" : ""}$
+              {totalPnl.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Typography>
+          </Box>
+        </Stack>
       </Box>
     );
   }

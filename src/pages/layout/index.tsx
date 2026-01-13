@@ -73,7 +73,7 @@ export default function ExplorerLayout({children}: LayoutProps) {
                   paddingTop: "2rem",
                   width: {xs: "95%", md: "70%"},
                   "@media (min-width: 1920px)": {
-                    width: "62.5%",
+                    width: "1200px",
                   },
                   mx: "auto",
                   px: "0 !important",

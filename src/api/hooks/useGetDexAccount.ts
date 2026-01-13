@@ -104,7 +104,7 @@ export function useGetDexAccount(address: string) {
         );
         if (!perpInfo) return;
 
-        const quantumConversionExp = perpInfo.quantum_conversion_exponent ?? -9;
+        const baseAtomicResolution = perpInfo.base_atomic_resolution ?? -9;
         const leverage = getEffectiveLeverage(perp.perpetual_id);
         const symbol = perpInfo.ticker.split("-")[0];
 
@@ -114,7 +114,7 @@ export function useGetDexAccount(address: string) {
             market: `${perpInfo.ticker}_PERP`,
             symbol: symbol,
             side: "long",
-            size: perp.long_quantums * Math.pow(10, quantumConversionExp),
+            size: perp.long_quantums * Math.pow(10, baseAtomicResolution),
             leverage: leverage,
             subAccountId: sub.subaccount_number,
           });
@@ -126,7 +126,7 @@ export function useGetDexAccount(address: string) {
             market: `${perpInfo.ticker}_PERP`,
             symbol: symbol,
             side: "short",
-            size: perp.short_quantums * Math.pow(10, quantumConversionExp),
+            size: perp.short_quantums * Math.pow(10, baseAtomicResolution),
             leverage: leverage,
             subAccountId: sub.subaccount_number,
           });

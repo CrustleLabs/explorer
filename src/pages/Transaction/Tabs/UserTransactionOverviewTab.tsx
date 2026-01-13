@@ -8,7 +8,6 @@ import {
   AccordionSummary,
   AccordionDetails,
   Tooltip,
-  IconButton,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -30,6 +29,7 @@ import {
 } from "../../../api/hooks/useGetCoinList";
 import {findCoinData} from "./BalanceChangeTab";
 import {useGetAssetMetadata} from "../../../api/hooks/useGetAssetMetadata";
+import {useGetPerpetuals} from "../../../api/hooks/useGetPerpetuals";
 import {Link} from "../../../routing";
 import ActionDetailsRow from "./Components/ActionDetailsRow";
 import {Hex} from "@aptos-labs/ts-sdk";
@@ -559,7 +559,9 @@ function UnifiedLayout({
   txnAny: ExtendedTransaction;
 }) {
   const isDex =
-    transactionData.payload?.type.split("::").pop() === "dex_payload";
+    transactionData.payload?.type.split("::").pop() === "dex_orderless_payload";
+
+  const {data: perpetuals} = useGetPerpetuals();
 
   const [copyTooltipOpen, setCopyTooltipOpen] = React.useState(false);
 
@@ -595,7 +597,24 @@ function UnifiedLayout({
             >
               Status
             </Typography>
-            <TransactionStatus success={transactionData.success} />
+            {isDex ? (
+              <Box
+                sx={{
+                  display: "inline-block",
+                  padding: "4px 12px",
+                  borderRadius: "6px",
+                  backgroundColor: "rgba(224, 131, 78, 0.16)",
+                  color: "#E0834E",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  fontFamily: '"SF Pro", sans-serif',
+                }}
+              >
+                Filled
+              </Box>
+            ) : (
+              <TransactionStatus success={transactionData.success} />
+            )}
           </Box>
         </Grid>
         <Grid size={{xs: 6, sm: 6, md: 3}} sx={{display: "flex"}}>
@@ -706,7 +725,8 @@ function UnifiedLayout({
               color="#fff"
               fontSize="18px"
             >
-              {transactionData.payload.type.split("::").pop() === "dex_payload"
+              {transactionData.payload.type.split("::").pop() ===
+              "dex_orderless_payload"
                 ? "Order"
                 : transactionData.payload.type.split("::").pop() ||
                   "Transaction"}
@@ -769,157 +789,76 @@ function UnifiedLayout({
           </Stack>
 
           <Stack spacing={3}>
+            {/* Hash Row */}
             <Box>
               <Typography
                 sx={{
                   color: "#999",
                   fontSize: "14px",
                   mb: 1,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                User
-              </Typography>
-              <HashButton
-                hash={transactionData.sender}
-                type={HashType.ACCOUNT}
-              />
-            </Box>
-
-            {(transactionData.payload as unknown as DexPayload).orders[0] && (
-              <Box>
-                <Typography
-                  sx={{
-                    color: "#999",
-                    fontSize: "14px",
-                    mb: 1,
-                    fontFamily: '"SF Pro", sans-serif',
-                  }}
-                >
-                  Subaccount
-                </Typography>
-                <HashButton
-                  hash={
-                    (transactionData.payload as unknown as DexPayload).orders[0]
-                      .subaccount
-                  }
-                  type={HashType.ACCOUNT}
-                />
-              </Box>
-            )}
-
-            <Box>
-              <Typography
-                sx={{
-                  color: "#999",
-                  fontSize: "14px",
-                  mb: 1.5,
                   fontFamily: '"SF Pro", sans-serif',
                 }}
               >
                 Hash
               </Typography>
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                sx={{
-                  backgroundColor: "rgba(182,146,244,0.16)",
-                  border: "0.5px solid rgba(217,203,251,0.12)",
-                  borderRadius: "40px",
-                  padding: "6px 14px",
-                  width: "fit-content",
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: "#fff",
-                    fontSize: "14px",
-                    fontFamily: '"SF Pro", sans-serif',
-                    wordBreak: "break-all",
-                  }}
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <HashButton
+                  hash={transactionData.hash}
+                  type={HashType.TRANSACTION}
+                />
+                <Tooltip
+                  title="Copied"
+                  open={copyTooltipOpen}
+                  disableFocusListener
+                  disableHoverListener
+                  disableTouchListener
+                  placement="right"
                 >
-                  {transactionData.hash}
-                </Typography>
-                <Tooltip title="Copied" open={copyTooltipOpen} arrow>
-                  <IconButton
+                  <Box
+                    component="span"
                     onClick={() => copyHash(transactionData.hash)}
                     sx={{
-                      padding: 0,
-                      color: "rgba(255, 255, 255, 0.6)",
-                      "&:hover": {color: "#fff"},
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      color: "rgba(255, 255, 255, 0.4)",
+                      "&:hover": {
+                        color: "#FFFFFF",
+                      },
                     }}
                   >
                     <ContentCopyIcon sx={{fontSize: 16}} />
-                  </IconButton>
+                  </Box>
                 </Tooltip>
               </Stack>
             </Box>
 
-            <Box>
-              <Typography
-                sx={{
-                  color: "#999",
-                  fontSize: "14px",
-                  mb: 1,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                Action details
-              </Typography>
-              <ActionDetailsRow transaction={transactionData} />
-            </Box>
+            {/* Action Details Row */}
+            {isDex &&
+              (transactionData.payload as unknown as DexPayload).orders[0] && (
+                <Box>
+                  <Typography
+                    sx={{
+                      color: "#999",
+                      fontSize: "14px",
+                      mb: 1,
+                      fontFamily: '"SF Pro", sans-serif',
+                    }}
+                  >
+                    Action details
+                  </Typography>
+                  <ActionDetailsRow
+                    order={
+                      (transactionData.payload as unknown as DexPayload)
+                        .orders[0]
+                    }
+                    perpetuals={perpetuals || []}
+                    sender={transactionData.sender}
+                  />
+                </Box>
+              )}
 
-            <Box>
-              <Typography
-                sx={{
-                  color: "#999",
-                  fontSize: "14px",
-                  mb: 1,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                Status
-              </Typography>
-              <Box
-                sx={{
-                  display: "inline-block",
-                  padding: "4px 12px",
-                  borderRadius: "6px",
-                  backgroundColor: "rgba(224, 131, 78, 0.16)",
-                  color: "#E0834E",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  textTransform: "capitalize",
-                }}
-              >
-                Filled
-              </Box>
-            </Box>
-
-            <Box>
-              <Typography
-                sx={{
-                  color: "#999",
-                  fontSize: "14px",
-                  mb: 1,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                Version
-              </Typography>
-              <Typography
-                sx={{
-                  color: "#fff",
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                {transactionData.version}
-              </Typography>
-            </Box>
-
+            {/* Timestamp Row */}
             <Box>
               <Typography
                 sx={{
@@ -931,10 +870,16 @@ function UnifiedLayout({
               >
                 Timestamp
               </Typography>
-              <TimestampValue
-                timestamp={transactionData.timestamp}
-                ensureMilliSeconds
-              />
+              <Typography
+                variant="body1"
+                color="#fff"
+                fontFamily='"SF Pro", sans-serif'
+                fontSize="16px"
+              >
+                {moment(
+                  Math.floor(Number(transactionData.timestamp) / 1000),
+                ).format("MM/DD/YYYY HH:mm:ss.SSS")}
+              </Typography>
             </Box>
           </Stack>
 
