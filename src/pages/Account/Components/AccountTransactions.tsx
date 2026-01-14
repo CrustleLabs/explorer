@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {Pagination, Box} from "@mui/material";
 import TransactionsTable from "../../Transactions/TransactionsTable";
 import Error from "../Error";
+import {ResponseErrorType} from "../../../api/client";
 import {useGetAccountTransactions} from "../../../api/hooks/useGetAccountTransactions";
 import EmptyTabContent from "../../../components/IndividualPageContent/EmptyTabContent";
 import {Types} from "aptos";
@@ -50,7 +51,12 @@ function TransactionsPaginationTable({
   );
 
   if (error) {
-    return <Error address={address} error={error} />;
+    return (
+      <Error
+        address={address}
+        error={{type: ResponseErrorType.UNHANDLED, message: error.message}}
+      />
+    );
   }
 
   const handleChange = (
