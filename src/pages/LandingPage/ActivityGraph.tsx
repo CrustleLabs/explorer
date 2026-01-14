@@ -22,8 +22,6 @@ const ACTIVITY_COLORS = [
   "#2C2835", // Adding this black color as a placeholder for unknown/empty
 ];
 
-const MAX_HISTORY_SIZE = 500;
-
 const getActivityColor = (txCount: number) => {
   if (txCount === -1) return ACTIVITY_COLORS[6]; // Placeholder color
   const index = Math.min(Math.floor(txCount / 2), ACTIVITY_COLORS.length - 2); // -1 for index, -1 for last color reservation
@@ -31,7 +29,7 @@ const getActivityColor = (txCount: number) => {
 };
 
 interface GridItem {
-  id: number;
+  id: string; // Changed to string for more stable IDs
   txCount: number;
   blockHeight?: string;
   timestamp?: string; // microseconds
@@ -66,8 +64,12 @@ const CustomTooltip = styled(({className, ...props}: TooltipProps) => (
 export default function ActivityGraph({sx}: ActivityGraphProps) {
   const [state] = useGlobalState();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [gridDimensions, setGridDimensions] = useState({rows: 9, cols: 0});
+  // Start with 0,0 to prevent rendering before proper size calculation
+  const [gridDimensions, setGridDimensions] = useState({rows: 0, cols: 0});
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
+
+  // Use ref to always have current dimensions in async callbacks
+  const dimensionsRef = useRef({rows: 0, cols: 0});
 
   // Refs for hover pause logic
   const isHoveringRef = useRef(false);
@@ -77,23 +79,27 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
   useEffect(() => {
     const calculateDimensions = (width: number, height: number) => {
       // Inner Logic: Available Size / (Dot(16) + Gap(3))
-      // We increase the buffer to 16px to ensure we never have overflow/clipping
-      // on different zoom levels or sub-pixel rendering.
       const DOT_SIZE = 16;
       const GAP = 3;
-      const BUFFER = 16;
 
       const calculatedCols = Math.floor((width + GAP) / (DOT_SIZE + GAP));
-      const calculatedRows = Math.floor(
-        (height - BUFFER + GAP) / (DOT_SIZE + GAP),
-      );
+      const calculatedRows = Math.floor((height + GAP) / (DOT_SIZE + GAP));
 
       setGridDimensions((prev) => {
         if (prev.cols !== calculatedCols || prev.rows !== calculatedRows) {
-          return {
+          const newDims = {
             rows: Math.max(0, calculatedRows),
             cols: Math.max(0, calculatedCols),
           };
+          // Keep ref in sync for use in async callbacks
+          dimensionsRef.current = newDims;
+          console.log("[ActivityGraph] Dimensions changed:", {
+            from: prev,
+            to: newDims,
+            containerSize: {width, height},
+            totalSlots: newDims.rows * newDims.cols,
+          });
+          return newDims;
         }
         return prev;
       });
@@ -118,22 +124,36 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Update grid items array when dimensions change
+  // Update grid items array when dimensions change - always match exactly totalSize
   useEffect(() => {
     const totalSize = gridDimensions.rows * gridDimensions.cols;
     if (totalSize === 0) return;
 
     setGridItems((prev) => {
-      // Only extend if needed. Never truncate to prevent data loss on resize oscillation.
+      if (prev.length === totalSize) {
+        return prev; // Already correct size
+      }
       if (prev.length < totalSize) {
+        // Need to add placeholders at the end
         const needed = totalSize - prev.length;
         const placeholders = Array.from({length: needed}).map((_, i) => ({
-          id: Date.now() + Math.random() + i, // simple id
+          id: `placeholder-${prev.length + i}`, // Stable placeholder IDs
           txCount: -1, // -1 indicating empty/placeholder
         }));
+        console.log("[ActivityGraph] Adding placeholders:", {
+          prevLength: prev.length,
+          needed,
+          newLength: prev.length + needed,
+          targetSize: totalSize,
+        });
         return [...prev, ...placeholders];
       }
-      return prev;
+      // prev.length > totalSize - truncate to fit
+      console.log("[ActivityGraph] Truncating items:", {
+        prevLength: prev.length,
+        newLength: totalSize,
+      });
+      return prev.slice(0, totalSize);
     });
   }, [gridDimensions]);
 
@@ -181,7 +201,7 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
           const txCount =
             parseInt(block.last_version) - parseInt(block.first_version) + 1;
           return {
-            id: Date.now() + Math.random(),
+            id: `block-${block.block_height}`, // Use block height as stable unique ID
             txCount,
             blockHeight: block.block_height,
             timestamp: block.block_timestamp,
@@ -193,21 +213,35 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
         if (isHoveringRef.current) {
           // If hovering, accumulate updates without rendering
           pendingItemsRef.current = [...pendingItemsRef.current, ...newItems];
+          console.log(
+            "[ActivityGraph] Hovering - buffered items:",
+            pendingItemsRef.current.length,
+          );
         } else {
           // If not hovering, apply updates immediately
-          setGridItems((prev) => {
-            // We need to apply newItems sequentially: oldest first so they get pushed down?
-            // No, visual order: standard approach is prepend new items.
-            // newBlocks is [H, H+1, ...]. H+1 is newer.
-            // We want H+1 to be at index 0, H at index 1... finally.
-            // So for [A, B] (A older, B newer), we want output [B, A, ...prev]
-
-            // We reverse newItems so newest is first in the list to be prepended
-            const updatesToAdd = [...newItems].reverse();
-            const updatedList = [...updatesToAdd, ...prev];
-            // Keep a large history to avoid flickering on resize
-            return updatedList.slice(0, MAX_HISTORY_SIZE);
+          // Use ref to always get current dimensions (avoid stale closure)
+          const {rows, cols} = dimensionsRef.current;
+          const totalSize = rows * cols;
+          console.log("[ActivityGraph] Fetch update:", {
+            newItemsCount: newItems.length,
+            dimensionsRef: {rows, cols},
+            totalSize,
           });
+          if (totalSize > 0) {
+            setGridItems((prev) => {
+              // We reverse newItems so newest is first in the list to be prepended
+              const updatesToAdd = [...newItems].reverse();
+              const updatedList = [...updatesToAdd, ...prev];
+              const result = updatedList.slice(0, totalSize);
+              console.log("[ActivityGraph] After fetch setGridItems:", {
+                prevLength: prev.length,
+                afterPrepend: updatedList.length,
+                finalLength: result.length,
+                targetSize: totalSize,
+              });
+              return result;
+            });
+          }
         }
       } catch {
         // ignore errors
@@ -223,14 +257,17 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
 
   const handleMouseLeave = () => {
     isHoveringRef.current = false;
-    // Flush pending items
-    if (pendingItemsRef.current.length > 0) {
+    // Flush pending items using current dimensions from ref
+    const {rows, cols} = dimensionsRef.current;
+    const totalSize = rows * cols;
+    if (pendingItemsRef.current.length > 0 && totalSize > 0) {
       setGridItems((prev) => {
         // pendingItems are in fetch order (oldest to newest)
         // We want newest to be at the top.
         const updatesToAdd = [...pendingItemsRef.current].reverse();
         const updatedList = [...updatesToAdd, ...prev];
-        return updatedList.slice(0, MAX_HISTORY_SIZE);
+        // Strictly limit to visible grid size
+        return updatedList.slice(0, totalSize);
       });
       pendingItemsRef.current = [];
     }
@@ -264,6 +301,21 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
         }}
       >
         {/* Container for the dots with black background */}
+        {gridDimensions.cols > 0 &&
+          (() => {
+            const totalSlots = gridDimensions.rows * gridDimensions.cols;
+            const renderCount = Math.min(gridItems.length, totalSlots);
+            if (gridItems.length !== totalSlots) {
+              console.warn("[ActivityGraph] RENDER MISMATCH:", {
+                gridItemsLength: gridItems.length,
+                totalSlots,
+                rows: gridDimensions.rows,
+                cols: gridDimensions.cols,
+                willRender: renderCount,
+              });
+            }
+            return null;
+          })()}
         {gridDimensions.cols > 0 && (
           <Box
             // Attach hover handlers to the grid container
@@ -273,6 +325,7 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
               display: "grid",
               // Sync columns with current items to prevent incomplete rows during resize
               gridTemplateColumns: `repeat(${gridDimensions.cols}, 16px)`,
+              gridTemplateRows: `repeat(${gridDimensions.rows}, 16px)`,
               gap: "3px",
               alignContent: "center",
               justifyContent: "center",
@@ -283,6 +336,7 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
               zIndex: 1,
               width: "fit-content", // Shrink wrap the grid
               margin: "0 auto", // Center
+              overflow: "hidden", // Prevent overflow
             }}
           >
             {gridItems

@@ -47,8 +47,9 @@ export default function UserTransactions() {
   const currentPage = parseInt(searchParams.get("page") ?? "1");
   const offset = (currentPage - 1) * LIMIT;
 
-  const startVersion = useGetUserTransactionVersions(1)[0];
-  const versions = useGetUserTransactionVersions(LIMIT, startVersion, offset);
+  const {versions: startVersionArray} = useGetUserTransactionVersions(1);
+  const startVersion = startVersionArray[0];
+  const {versions} = useGetUserTransactionVersions(LIMIT, startVersion, offset);
   const totalCount = useGetUserTransactionsCount();
 
   // Calculate total pages based on actual data count

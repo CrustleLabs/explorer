@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {useQuery, UseQueryResult} from "@tanstack/react-query";
 import Button from "@mui/material/Button";
 import {Types} from "aptos";
@@ -41,13 +41,12 @@ const viewAllLinkSx = {
   textTransform: "none",
 };
 
-const PREVIEW_COLUMNS: TransactionColumn[] = [
+export const PREVIEW_COLUMNS: TransactionColumn[] = [
   "version",
-  "status",
   "type",
-  "hash",
+  "status",
   "sender",
-  "amountGas",
+  "actionsDetails",
   "timestamp",
 ];
 
@@ -63,16 +62,22 @@ function TransactionContent({
 }
 
 export default function TransactionsPreview() {
+  const [isHovered, setIsHovered] = useState(false);
   const [state] = useGlobalState();
   const limit = PREVIEW_LIMIT;
   const result = useQuery({
     queryKey: ["transactionsPreview", {limit}, state.network_value],
     queryFn: () => getTransactions({limit}, state.aptos_client),
+    refetchInterval: isHovered ? 0 : 5000,
   });
   const augmentTo = useAugmentToWithGlobalSearchParams();
 
   return (
-    <Box sx={transactionsCardSx}>
+    <Box
+      sx={transactionsCardSx}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <Stack spacing={3}>
         <Box
           sx={{
@@ -105,7 +110,7 @@ export default function TransactionsPreview() {
           <TransactionContent {...result} />
         </Box>
 
-        <Box sx={{display: "flex", justifyContent: "center", pt: 2, pb: 2}}>
+        <Box sx={{display: "flex", justifyContent: "center"}}>
           <Button
             component={RRD.Link}
             to={augmentTo("/transactions")}

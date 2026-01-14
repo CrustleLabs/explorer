@@ -43,39 +43,39 @@ export default function SkeletonBlock({
 }
 
 /**
- * Skeleton row for transaction table
- * Matches the table row structure with 5 columns
+ * Skeleton row for transaction table - matching Figma design
+ * Has 6 visible skeleton columns: Version, Type, Status, User, Actions/Details, Timestamp
  */
 export function SkeletonTableRow() {
   return (
     <Box
       sx={{
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "90px 60px 100px 130px 1fr 140px",
         alignItems: "center",
-        gap: 2,
-        py: 1.5,
+        gap: 3,
+        py: 2,
         borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       {/* Version */}
-      <SkeletonBlock width={60} height={18} />
+      <SkeletonBlock width={70} height={28} />
+      {/* Type */}
+      <SkeletonBlock width={28} height={28} borderRadius={6} />
       {/* Status */}
-      <SkeletonBlock width={70} height={18} />
+      <SkeletonBlock width={80} height={28} />
       {/* User */}
-      <SkeletonBlock width={120} height={18} />
+      <SkeletonBlock width={110} height={28} />
       {/* Actions / Details */}
-      <Box sx={{flex: 1, display: "flex", gap: 1}}>
-        <SkeletonBlock width={100} height={18} />
-        <SkeletonBlock width={80} height={18} />
-      </Box>
+      <SkeletonBlock width="70%" height={28} sx={{maxWidth: 280}} />
       {/* Timestamp */}
-      <SkeletonBlock width={100} height={18} />
+      <SkeletonBlock width={110} height={28} />
     </Box>
   );
 }
 
 /**
- * Skeleton table with header and multiple rows
+ * Skeleton table with header and multiple rows - matching Figma design
  */
 interface SkeletonTableProps {
   rowCount?: number;
@@ -84,21 +84,35 @@ interface SkeletonTableProps {
 export function SkeletonTable({rowCount = 10}: SkeletonTableProps) {
   return (
     <Box>
-      {/* Table header skeleton */}
+      {/* Table header */}
       <Box
         sx={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "90px 60px 100px 130px 1fr 140px",
           alignItems: "center",
-          gap: 2,
+          gap: 3,
           py: 1.5,
           borderBottom: "1px solid rgba(255,255,255,0.1)",
         }}
       >
-        <Box sx={{width: 60, color: "#666", fontSize: 12}}>Version</Box>
-        <Box sx={{width: 70, color: "#666", fontSize: 12}}>Status ⓘ</Box>
-        <Box sx={{width: 120, color: "#666", fontSize: 12}}>User</Box>
-        <Box sx={{flex: 1, color: "#666", fontSize: 12}}>Actions / Details</Box>
-        <Box sx={{width: 100, color: "#666", fontSize: 12}}>Timestamp</Box>
+        <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>Version</Box>
+        <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>
+          Type <span style={{opacity: 0.6}}>ⓘ</span>
+        </Box>
+        <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>Status</Box>
+        <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>User</Box>
+        <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>
+          Actions / Details
+        </Box>
+        <Box
+          sx={{
+            color: "rgba(255,255,255,0.5)",
+            fontSize: 14,
+            textAlign: "right",
+          }}
+        >
+          Timestamp
+        </Box>
       </Box>
       {/* Skeleton rows */}
       {Array.from({length: rowCount}).map((_, index) => (

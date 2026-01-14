@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import GeneralTableRow from "../../components/Table/GeneralTableRow";
 import GeneralTableHeaderCell from "../../components/Table/GeneralTableHeaderCell";
 import HashButton, {HashType} from "../../components/HashButton";
+import {SkeletonTableRow} from "../../components/SkeletonBlock";
 import {Types} from "aptos";
 import {assertNever} from "../../utils";
 import {
@@ -35,6 +36,16 @@ import {
 import {Link} from "../../routing";
 import {ArrowForwardOutlined, TextSnippetOutlined} from "@mui/icons-material";
 import Tooltip from "@mui/material/Tooltip";
+import {
+  DexPayload,
+  getSideLabel,
+  calculatePriceAndSize,
+  extractBaseToken,
+} from "../../utils/dex";
+import {useGetPerpetuals} from "../../api/hooks/useGetPerpetuals";
+import {Side} from "@aptos-labs/ts-sdk";
+import BTCIcon from "../../assets/svg/perps/btc.svg?react";
+import ETHIcon from "../../assets/svg/perps/eth.svg?react";
 
 type TransactionCellProps = {
   transaction: Types.Transaction;
@@ -97,19 +108,20 @@ function TransactionStatusCell({transaction}: TransactionCellProps) {
       <Box
         sx={{
           backgroundColor: success
-            ? "rgba(3,168,129,0.12)"
+            ? "rgba(3, 168, 129, 0.12)"
             : "rgba(220, 41, 113, 0.12)",
           border: success
-            ? "0.5px solid rgba(20,179,112,0.32)"
-            : "0.5px solid rgba(220, 41, 113, 0.32)",
-          borderRadius: "4px",
-          padding: "2px 8px",
-          color: success ? "#03a881" : "#DC2971",
+            ? "1px solid rgba(3, 168, 129, 0.2)"
+            : "1px solid rgba(220, 41, 113, 0.2)",
+          borderRadius: "100px",
+          padding: "2px 12px",
+          color: success ? "#03A881" : "#DC2971",
           fontSize: "14px",
+          fontWeight: 600,
           fontFamily: '"SF Pro", sans-serif',
           textAlign: "center",
           display: "inline-block",
-          lineHeight: "18px",
+          lineHeight: "20px",
         }}
       >
         {success ? "Success" : "Failed"}
@@ -147,7 +159,9 @@ function TransactionTimestampCell({transaction}: TransactionCellProps) {
       </Typography>
     );
 
-  return <GeneralTableCell>{timestamp}</GeneralTableCell>;
+  return (
+    <GeneralTableCell sx={{textAlign: "right"}}>{timestamp}</GeneralTableCell>
+  );
 }
 
 function TransactionSenderCell({transaction}: TransactionCellProps) {
@@ -279,6 +293,160 @@ function TransactionAmountGasCell({
   );
 }
 
+// Helper component to display order info in a compact format
+function OrderInfoDisplay({
+  order,
+  perpetuals,
+  showCount,
+  orderCount,
+}: {
+  order: DexPayload["orders"][0];
+  perpetuals: ReturnType<typeof useGetPerpetuals>["data"];
+  showCount?: boolean;
+  orderCount?: number;
+}) {
+  const perpetual = perpetuals?.[order.symbol_id];
+  if (!perpetual) return <Typography sx={{color: grey[450]}}>--</Typography>;
+
+  const sideInfo = getSideLabel(order.side as Side, order.reduce_only);
+  const baseToken = extractBaseToken(perpetual.ticker);
+  const {price, size} = calculatePriceAndSize(order, perpetual);
+  const notionalValue = price * size;
+
+  // Format value: $10.93K, $1.2M, etc.
+  const formatValue = (val: number) => {
+    if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(2)}M`;
+    if (val >= 1_000) return `$${(val / 1_000).toFixed(2)}K`;
+    return `$${val.toFixed(2)}`;
+  };
+
+  return (
+    <Box
+      sx={{display: "flex", alignItems: "center", gap: 0.5, flexWrap: "nowrap"}}
+    >
+      {showCount && orderCount && orderCount > 1 && (
+        <Typography
+          component="span"
+          sx={{color: aptosColor, fontWeight: 600, fontSize: "14px"}}
+        >
+          {orderCount}
+        </Typography>
+      )}
+      <Typography component="span" sx={{color: grey[450], fontSize: "14px"}}>
+        Orders /
+      </Typography>
+      <Box
+        component="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 16,
+          height: 16,
+        }}
+      >
+        {baseToken === "BTC" ? (
+          <BTCIcon width={16} height={16} />
+        ) : baseToken === "ETH" ? (
+          <ETHIcon width={16} height={16} />
+        ) : (
+          <Box
+            sx={{
+              width: 16,
+              height: 16,
+              borderRadius: "50%",
+              backgroundColor: "#F7931A",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "10px",
+              color: "#fff",
+              fontWeight: 700,
+            }}
+          >
+            {baseToken.charAt(0)}
+          </Box>
+        )}
+      </Box>
+      <Typography
+        component="span"
+        sx={{color: sideInfo.color, fontWeight: 600, fontSize: "14px"}}
+      >
+        {sideInfo.label}
+      </Typography>
+      <Typography component="span" sx={{color: "#fff", fontSize: "14px"}}>
+        {baseToken}
+      </Typography>
+      <Typography component="span" sx={{color: "#fff", fontSize: "14px"}}>
+        {formatValue(notionalValue)}
+      </Typography>
+    </Box>
+  );
+}
+
+function TransactionActionsDetailsCell({transaction}: TransactionCellProps) {
+  const {data: perpetuals} = useGetPerpetuals();
+
+  // Block Metadata and Block Epilogue transactions show "--"
+  if (
+    transaction.type === "block_metadata_transaction" ||
+    transaction.type === "block_epilogue_transaction" ||
+    transaction.type === "validator_transaction"
+  ) {
+    return (
+      <GeneralTableCell>
+        <Typography sx={{color: grey[450]}}>--</Typography>
+      </GeneralTableCell>
+    );
+  }
+
+  // Check if this is a dex_orderless_payload transaction
+  const payload =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    "payload" in transaction ? (transaction as any).payload : null;
+  const isDexOrder =
+    payload?.type === "dex_orderless_payload" && payload?.orders?.length > 0;
+
+  if (isDexOrder) {
+    const orders = payload.orders as DexPayload["orders"];
+    const firstOrder = orders[0];
+
+    return (
+      <GeneralTableCell>
+        <OrderInfoDisplay
+          order={firstOrder}
+          perpetuals={perpetuals}
+          showCount={orders.length > 1}
+          orderCount={orders.length}
+        />
+      </GeneralTableCell>
+    );
+  }
+
+  // Fallback to default amount/gas display
+  return (
+    <GeneralTableCell sx={{paddingY: 1}}>
+      <Stack sx={{textAlign: "left"}}>
+        <TransactionAmount transaction={transaction} />
+        <Box sx={{fontSize: 11, color: grey[450]}}>
+          {"gas_used" in transaction && "gas_unit_price" in transaction ? (
+            <>
+              <>Gas</>
+              {""}
+              <GasFeeValue
+                gasUsed={transaction.gas_used}
+                gasUnitPrice={transaction.gas_unit_price}
+                transactionData={transaction}
+                netGasCost
+              />
+            </>
+          ) : null}
+        </Box>
+      </Stack>
+    </GeneralTableCell>
+  );
+}
+
 const TransactionCells = Object.freeze({
   sequenceNum: SequenceNumberCell,
   versionStatus: TransactionVersionStatusCell,
@@ -291,6 +459,7 @@ const TransactionCells = Object.freeze({
   receiverOrCounterParty: TransactionReceiverOrCounterPartyCell,
   function: TransactionFunctionCell,
   amountGas: TransactionAmountGasCell,
+  actionsDetails: TransactionActionsDetailsCell,
 });
 
 export type TransactionColumn = keyof typeof TransactionCells;
@@ -337,7 +506,7 @@ function UserTransactionRow({
   const {data: transaction, isError} = useGetTransaction(version.toString());
 
   if (!transaction || isError) {
-    return null;
+    return <SkeletonTableRow />;
   }
 
   return (
@@ -377,15 +546,17 @@ function TransactionHeaderCell({column}: TransactionHeaderCellProps) {
         />
       );
     case "timestamp":
-      return <GeneralTableHeaderCell header="Timestamp" />;
+      return <GeneralTableHeaderCell header="Timestamp" textAlignRight />;
     case "sender":
-      return <GeneralTableHeaderCell header="Sender" />;
+      return <GeneralTableHeaderCell header="User" />;
     case "receiverOrCounterParty":
       return <GeneralTableHeaderCell header="Sent To" />;
     case "function":
       return <GeneralTableHeaderCell header="Function" />;
     case "amountGas":
       return <GeneralTableHeaderCell header="Amount" textAlignRight />;
+    case "actionsDetails":
+      return <GeneralTableHeaderCell header="Actions / Details" />;
     default:
       return assertNever(column);
   }

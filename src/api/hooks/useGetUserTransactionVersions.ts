@@ -36,21 +36,29 @@ export default function useGetUserTransactionVersions(
   limit: number,
   startVersion?: number,
   offset?: number,
-): number[] {
+): {versions: number[]; loading: boolean} {
   const topTxnsOnly = startVersion === undefined || offset === undefined;
   const {loading, error, data} = useGraphqlQuery<{
     user_transactions: {version: number}[];
   }>(topTxnsOnly ? TOP_USER_TRANSACTIONS_QUERY : USER_TRANSACTIONS_QUERY, {
     variables: {limit: limit, start_version: startVersion, offset: offset},
+    pollInterval: 5000,
   });
 
-  if (loading || error || !data) {
-    return [];
+  if ((loading && !data) || error) {
+    return {versions: [], loading: loading};
   }
 
-  return data.user_transactions.map((txn: {version: number}) => {
-    return txn.version;
-  });
+  if (!data) {
+    return {versions: [], loading: false};
+  }
+
+  return {
+    versions: data.user_transactions.map((txn: {version: number}) => {
+      return txn.version;
+    }),
+    loading: loading,
+  };
 }
 
 export function useGetUserTransactionsCount(): number | undefined {

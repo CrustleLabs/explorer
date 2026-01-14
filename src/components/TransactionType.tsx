@@ -2,13 +2,15 @@ import {Box, Stack, Typography} from "@mui/material";
 import React from "react";
 import StartRoundedIcon from "@mui/icons-material/StartRounded";
 import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
-import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
-import MultipleStopRoundedIcon from "@mui/icons-material/MultipleStopRounded";
-import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
 import QuestionMarkOutlined from "@mui/icons-material/QuestionMarkOutlined";
 import {grey} from "../themes/colors/aptosColorPalette";
 import TooltipTypography from "./TooltipTypography";
-import {CheckCircleOutlined, StopCircleOutlined} from "@mui/icons-material";
+// Custom transaction type icons
+import TxBlockMetadataIcon from "../assets/svg/tx_block_metadata.svg?react";
+import TxUserIcon from "../assets/svg/tx_user.svg?react";
+import TxValidatorIcon from "../assets/svg/tx_validator.svg?react";
+import TxBlockEpilogueIcon from "../assets/svg/tx_block_epilogue.svg?react";
+import TxPendingIcon from "../assets/svg/tx_pending.svg?react";
 
 export enum TransactionTypeName {
   BlockMetadata = "block_metadata_transaction",
@@ -45,21 +47,22 @@ function getTypeLabel(type: string): string {
 }
 
 function getTypeIcon(type: string, color?: Color) {
+  const iconStyle = {width: 20, height: 20};
   switch (type) {
     case TransactionTypeName.BlockMetadata:
-      return <SubtitlesOutlinedIcon fontSize="small" color={color} />;
+      return <TxBlockMetadataIcon style={iconStyle} />;
     case TransactionTypeName.Genesis:
       return <StartRoundedIcon fontSize="small" color={color} />;
     case TransactionTypeName.User:
-      return <MultipleStopRoundedIcon fontSize="small" color={color} />;
+      return <TxUserIcon style={iconStyle} />;
     case TransactionTypeName.Pending:
-      return <UpdateRoundedIcon fontSize="small" color={color} />;
+      return <TxPendingIcon style={iconStyle} />;
     case TransactionTypeName.StateCheckpoint:
       return <OutlinedFlagIcon fontSize="small" color={color} />;
     case TransactionTypeName.Validator:
-      return <CheckCircleOutlined fontSize="small" color={color} />;
+      return <TxValidatorIcon style={iconStyle} />;
     case TransactionTypeName.BlockEpilogue:
-      return <StopCircleOutlined fontSize="small" color={color} />;
+      return <TxBlockEpilogueIcon style={iconStyle} />;
     default:
       return <QuestionMarkOutlined fontSize="small" color={color} />;
   }

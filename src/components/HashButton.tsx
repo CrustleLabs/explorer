@@ -32,6 +32,7 @@ import {
 } from "../utils";
 import {useGetNameFromAddress} from "../api/hooks/useGetANS";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CopyIcon from "../assets/svg/copy_icon.svg?react";
 import IdenticonImg from "./IdenticonImg";
 import {Link} from "../routing";
 import {useGetCoinList, CoinDescription} from "../api/hooks/useGetCoinList";
@@ -137,15 +138,15 @@ function AccountHashButtonInner({
           backgroundColor: codeBlockColorClickableOnHover,
         },
         color: theme.palette.mode === "dark" ? "#83CCED" : "#0EA5E9",
-        padding: "4px 8px 4px 4px",
+        padding: "4px 4px 4px 4px",
         overflow: "hidden",
         whiteSpace: "nowrap",
         textOverflow: "ellipsis",
-        borderRadius: 50,
+        borderRadius: "100px",
         textDecoration: "none",
         display: "inline-flex",
         alignItems: "center",
-        gap: 1,
+        gap: 0.5,
       }}
     >
       <Box
@@ -175,25 +176,27 @@ function AccountHashButtonInner({
           sx={{
             color: "inherit",
             "&:hover": {
-              backgroundColor: `${
-                theme.palette.mode === "dark" ? primary[700] : primary[100]
-              }`,
-              color: `${
-                theme.palette.mode === "dark" ? primary[100] : primary[600]
-              }`,
+              backgroundColor: "transparent",
+              opacity: 0.8,
             },
             padding: "0",
             minWidth: "unset", // remove minimum width
             borderRadius: "50%",
             width: 20,
             height: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
           onClick={copyAddress}
-          endIcon={
-            <ContentCopyIcon sx={{opacity: "0.75", fontSize: 14, m: 0}} />
-          }
           size="small"
-        />
+        >
+          <CopyIcon
+            width={16}
+            height={16}
+            style={{opacity: "0.75", margin: 0, display: "block"}}
+          />
+        </Button>
       </Tooltip>
     </Link>
   );
