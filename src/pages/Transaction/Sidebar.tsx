@@ -8,6 +8,8 @@ import TimestampValue from "../../components/IndividualPageContent/ContentValue/
 import {APTCurrencyValue} from "../../components/IndividualPageContent/ContentValue/CurrencyValue";
 import {useGlobalState} from "../../global-config/GlobalConfig";
 import CubeIcon from "../../assets/svg/cube.svg?react";
+import {useGetIndexerSubaccounts} from "../../api/hooks/useGetIndexerSubaccounts";
+import IdenticonImg from "../../components/IdenticonImg";
 
 type SidebarProps = {
   transaction: Types.Transaction;
@@ -41,6 +43,16 @@ const SidebarRow = ({
   </Box>
 );
 
+// Shared label style for section titles (User, Total Value, Unrealized P&L, etc.)
+const sectionLabelStyle = {
+  color: "#666",
+  fontSize: "14px",
+  lineHeight: "18px",
+  mb: 1,
+  fontFamily: '"SF Pro", sans-serif',
+  fontWeight: 400,
+};
+
 export default function TransactionSidebar({transaction}: SidebarProps) {
   // Cast to specific type to access fields safely, though mostly common fields
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,10 +69,28 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
   };
 
   if (txn.payload?.type === "dex_orderless_payload") {
-    // Placeholder values - these would come from an API in a real implementation
-    const totalValue = 14670.65;
-    const unrealizedPnl = -4670.65;
-    const totalPnl = -4670.65;
+    // Fetch real account data from indexer API
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const {data: subaccountsData} = useGetIndexerSubaccounts(txn.sender);
+
+    // Calculate Total Value: sum of all subaccounts' equity
+    const totalValue =
+      subaccountsData?.parsedSubaccounts.reduce(
+        (sum, s) => sum + s.equity,
+        0,
+      ) || 0;
+
+    // Calculate Unrealized P&L: sum of all perpetual positions' unrealizedPnl
+    const unrealizedPnl =
+      subaccountsData?.parsedSubaccounts.reduce(
+        (sum, s) =>
+          sum +
+          s.perpetualPositions.reduce(
+            (posSum, pos) => posSum + pos.unrealizedPnl,
+            0,
+          ),
+        0,
+      ) || 0;
 
     return (
       <Box
@@ -119,37 +149,48 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
         <Stack spacing={3}>
           {/* User Address */}
           <Box>
-            <Typography
-              sx={{
-                color: "#666",
-                fontSize: "11px",
-                mb: 0.5,
-                fontFamily: '"SF Pro", sans-serif',
-              }}
-            >
-              User
-            </Typography>
+            <Typography sx={sectionLabelStyle}>User</Typography>
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1}
+              spacing={1.5}
               sx={{
-                backgroundColor: "rgba(182,146,244,0.16)",
-                border: "0.5px solid rgba(217,203,251,0.12)",
+                backgroundColor: "rgba(102, 75, 158, 0.5)",
+                border: "1px solid rgba(182, 146, 244, 0.24)",
                 borderRadius: "40px",
-                padding: "6px 12px",
+                padding: "8px 16px 8px 8px",
+                maxWidth: "100%",
                 width: "fit-content",
               }}
             >
+              {/* Address-based random avatar */}
+              {txn.sender && (
+                <Box
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    flexShrink: 0,
+                  }}
+                >
+                  <IdenticonImg address={txn.sender} />
+                </Box>
+              )}
               <Typography
                 sx={{
                   color: "#fff",
-                  fontSize: "14px",
+                  fontSize: "16px",
+                  fontWeight: 500,
                   fontFamily: '"SF Pro", sans-serif',
+                  letterSpacing: "0.02em",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {txn.sender
-                  ? `${txn.sender.slice(0, 6)}...${txn.sender.slice(-6)}`
+                  ? `${txn.sender.slice(0, 10)}...${txn.sender.slice(-8)}`
                   : "-"}
               </Typography>
               <Tooltip
@@ -179,16 +220,18 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
             </Stack>
           </Box>
 
+          {/* Divider */}
+          <Box
+            sx={{
+              height: "1px",
+              backgroundColor: "rgba(255, 255, 255, 0.06)",
+              my: "32px",
+            }}
+          />
+
           {/* Total Value */}
           <Box>
-            <Typography
-              sx={{
-                color: "#666",
-                fontSize: "11px",
-                mb: 0.5,
-                fontFamily: '"SF Pro", sans-serif',
-              }}
-            >
+            <Typography sx={{...sectionLabelStyle, mb: 0.5}}>
               Total Value
             </Typography>
             <Typography
@@ -209,14 +252,7 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
 
           {/* Unrealized P&L */}
           <Box>
-            <Typography
-              sx={{
-                color: "#666",
-                fontSize: "11px",
-                mb: 0.5,
-                fontFamily: '"SF Pro", sans-serif',
-              }}
-            >
+            <Typography sx={{...sectionLabelStyle, mb: 0.5}}>
               Unrealized P&L
             </Typography>
             <Typography
@@ -229,34 +265,6 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
             >
               {unrealizedPnl >= 0 ? "+" : ""}$
               {unrealizedPnl.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </Typography>
-          </Box>
-
-          {/* Total P&L */}
-          <Box>
-            <Typography
-              sx={{
-                color: "#666",
-                fontSize: "11px",
-                mb: 0.5,
-                fontFamily: '"SF Pro", sans-serif',
-              }}
-            >
-              Total P&L
-            </Typography>
-            <Typography
-              sx={{
-                color: totalPnl >= 0 ? "#03A881" : "#DC2971",
-                fontSize: "24px",
-                fontWeight: 700,
-                fontFamily: '"SF Pro", sans-serif',
-              }}
-            >
-              {totalPnl >= 0 ? "+" : ""}$
-              {totalPnl.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}

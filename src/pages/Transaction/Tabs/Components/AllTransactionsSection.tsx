@@ -12,7 +12,9 @@ import {
   Tabs,
 } from "@mui/material";
 import {Types} from "aptos";
-import {useGetDexAccount} from "../../../../api/hooks/useGetDexAccount";
+import {useGetIndexerSubaccounts} from "../../../../api/hooks/useGetIndexerSubaccounts";
+import {useGetPerpetualMarkets} from "../../../../api/hooks/useGetPerpetuals";
+import {parsePositionsFromSubAccounts} from "../../../../utils/positionUtils";
 import BTCIcon from "../../../../assets/svg/perps/btc.svg?react";
 import ETHIcon from "../../../../assets/svg/perps/eth.svg?react";
 
@@ -33,30 +35,23 @@ export default function AllTransactionsSection({
 }: AllTransactionsSectionProps) {
   const [tabValue, setTabValue] = React.useState(0);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const sender = (transaction as any).sender;
-  const {data: dexAccount, isLoading} = useGetDexAccount(sender);
-  const positions = dexAccount?.positions || [];
+  const {data: indexerData, isLoading: isLoadingSubaccounts} =
+    useGetIndexerSubaccounts(sender);
+  const {data: markets, isLoading: isLoadingMarkets} = useGetPerpetualMarkets();
+
+  const positions = React.useMemo(() => {
+    if (!indexerData?.subaccounts || !markets) return [];
+    return parsePositionsFromSubAccounts(indexerData.subaccounts, markets);
+  }, [indexerData, markets]);
+
+  const isLoading = isLoadingSubaccounts || isLoadingMarkets;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-
-  // Mock data for positions table - in real implementation, this would come from API
-  const mockPositionsData = positions.map((pos) => {
-    return {
-      symbol: pos.symbol,
-      side: pos.side,
-      leverage: pos.leverage,
-      mark: 85934.5, // Placeholder
-      entry: 85934.5, // Placeholder
-      positionsValue: -167471.05, // Placeholder
-      pnl: 279.52, // Placeholder
-      roi: 0.24, // Placeholder
-      margin: 111244.41, // Placeholder
-      funding: 2937.36, // Placeholder
-    };
-  });
 
   return (
     <Box
@@ -75,13 +70,22 @@ export default function AllTransactionsSection({
             width: "24px",
             height: "24px",
             borderRadius: "50%",
-            backgroundColor: "#E5F3FF",
+            backgroundColor: "#8FC7FA",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            style={{
+              width: 24,
+              height: 24,
+            }}
+          >
             <path
               d="M5.5 9.47139C6.94445 7.66667 9.44809 5.5 12.0006 5.5C15.3459 5.5 18.1009 8.02742 18.4603 11.277M5.5 9.47139V6.22139M5.5 9.47139H8.75M5.54129 12.7249C5.90198 15.9732 8.65633 18.4991 12.0006 18.4991C14.5514 18.4991 17.0556 16.3333 18.5 14.5269M18.5 14.5269V17.7769M18.5 14.5269H15.25"
               stroke="black"
@@ -197,7 +201,7 @@ export default function AllTransactionsSection({
                   </Typography>
                 </TableCell>
               </TableRow>
-            ) : mockPositionsData.length === 0 ? (
+            ) : positions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8}>
                   <Typography color="#666" fontSize="12px">
@@ -206,8 +210,9 @@ export default function AllTransactionsSection({
                 </TableCell>
               </TableRow>
             ) : (
-              mockPositionsData.map((row, idx) => {
-                const Icon = LOGO_MAP[row.symbol];
+              positions.map((row, idx) => {
+                const symbol = row.ticker.split("-")[0];
+                const Icon = LOGO_MAP[symbol];
                 return (
                   <TableRow key={idx}>
                     <TableCell>
@@ -218,7 +223,7 @@ export default function AllTransactionsSection({
                           fontSize="13px"
                           fontFamily='"SF Pro", sans-serif'
                         >
-                          {row.symbol}
+                          {row.ticker}
                         </Typography>
                         <Box
                           sx={{
@@ -249,25 +254,26 @@ export default function AllTransactionsSection({
                     </TableCell>
                     <TableCell>
                       <Typography color="#fff" fontSize="13px">
-                        ${row.mark.toLocaleString()}
+                        ${row.markPrice.toLocaleString()}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography color="#fff" fontSize="13px">
-                        ${row.entry.toLocaleString()}
+                        ${row.entryPrice.toLocaleString()}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography color="#DC2971" fontSize="13px">
-                        ${row.positionsValue.toLocaleString()}
+                        ${row.positionValue.toLocaleString()}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography
-                        color={row.pnl >= 0 ? "#03A881" : "#DC2971"}
+                        color={row.unrealizedPnl >= 0 ? "#03A881" : "#DC2971"}
                         fontSize="13px"
                       >
-                        {row.pnl >= 0 ? "+" : ""}${row.pnl.toLocaleString()}
+                        {row.unrealizedPnl >= 0 ? "+" : ""}$
+                        {row.unrealizedPnl.toLocaleString()}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -276,7 +282,7 @@ export default function AllTransactionsSection({
                         fontSize="13px"
                       >
                         {row.roi >= 0 ? "+" : ""}
-                        {row.roi}%
+                        {row.roi.toFixed(2)}%
                       </Typography>
                     </TableCell>
                     <TableCell>

@@ -77,11 +77,11 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
   useEffect(() => {
     const calculateDimensions = (width: number, height: number) => {
       // Inner Logic: Available Size / (Dot(16) + Gap(3))
-      // We increase the buffer to 12px to ensure we never have overflow/clipping
+      // We increase the buffer to 16px to ensure we never have overflow/clipping
       // on different zoom levels or sub-pixel rendering.
       const DOT_SIZE = 16;
       const GAP = 3;
-      const BUFFER = 12;
+      const BUFFER = 16;
 
       const calculatedCols = Math.floor((width + GAP) / (DOT_SIZE + GAP));
       const calculatedRows = Math.floor(

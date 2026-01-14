@@ -550,6 +550,16 @@ type ExtendedTransaction = Types.Transaction_UserTransaction & {
   block_height?: string | number;
 };
 
+// Shared label style for section titles (Hash, Action details, Timestamp, etc.)
+const sectionLabelStyle = {
+  color: "#666",
+  fontSize: "14px",
+  lineHeight: "18px",
+  mb: 1,
+  fontFamily: '"SF Pro", sans-serif',
+  fontWeight: 400,
+};
+
 // Unified Layout Component
 function UnifiedLayout({
   transactionData,
@@ -746,13 +756,13 @@ function UnifiedLayout({
             mt: 4,
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1.5} mb={4}>
+          <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
             <Box
               sx={{
                 width: "24px",
                 height: "24px",
                 borderRadius: "50%",
-                backgroundColor: "#E5F3FF", // Lighter background color
+                backgroundColor: "#8FC7FA", // Lighter background color
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -791,21 +801,34 @@ function UnifiedLayout({
           <Stack spacing={3}>
             {/* Hash Row */}
             <Box>
-              <Typography
+              <Typography sx={sectionLabelStyle}>Hash</Typography>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1.5}
                 sx={{
-                  color: "#999",
-                  fontSize: "14px",
-                  mb: 1,
-                  fontFamily: '"SF Pro", sans-serif',
+                  backgroundColor: "rgba(102, 75, 158, 0.5)",
+                  border: "1px solid rgba(182, 146, 244, 0.24)",
+                  borderRadius: "40px",
+                  padding: "10px 16px",
+                  width: "fit-content",
+                  maxWidth: "100%",
                 }}
               >
-                Hash
-              </Typography>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <HashButton
-                  hash={transactionData.hash}
-                  type={HashType.TRANSACTION}
-                />
+                <Typography
+                  sx={{
+                    color: "#fff",
+                    fontSize: "14px",
+                    fontWeight: 400,
+                    fontFamily: '"SF Pro", monospace',
+                    letterSpacing: "0.01em",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {transactionData.hash}
+                </Typography>
                 <Tooltip
                   title="Copied"
                   open={copyTooltipOpen}
@@ -821,7 +844,8 @@ function UnifiedLayout({
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      color: "rgba(255, 255, 255, 0.4)",
+                      flexShrink: 0,
+                      color: "rgba(255, 255, 255, 0.6)",
                       "&:hover": {
                         color: "#FFFFFF",
                       },
@@ -837,16 +861,7 @@ function UnifiedLayout({
             {isDex &&
               (transactionData.payload as unknown as DexPayload).orders[0] && (
                 <Box>
-                  <Typography
-                    sx={{
-                      color: "#999",
-                      fontSize: "14px",
-                      mb: 1,
-                      fontFamily: '"SF Pro", sans-serif',
-                    }}
-                  >
-                    Action details
-                  </Typography>
+                  <Typography sx={sectionLabelStyle}>Action details</Typography>
                   <ActionDetailsRow
                     order={
                       (transactionData.payload as unknown as DexPayload)
@@ -860,16 +875,7 @@ function UnifiedLayout({
 
             {/* Timestamp Row */}
             <Box>
-              <Typography
-                sx={{
-                  color: "#999",
-                  fontSize: "14px",
-                  mb: 1,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                Timestamp
-              </Typography>
+              <Typography sx={sectionLabelStyle}>Timestamp</Typography>
               <Typography
                 variant="body1"
                 color="#fff"

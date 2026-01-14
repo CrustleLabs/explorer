@@ -40,6 +40,11 @@ export type IndexerSubaccount = {
   freeCollateral: string;
   openPerpetualPositions: Record<string, IndexerPerpetualPosition>;
   assetPositions: Record<string, IndexerAssetPosition>;
+  leverage_infos: {
+    symbol_id: number;
+    im_leverage: string;
+    exponent: string;
+  }[];
   marginEnabled: boolean;
   updatedAtHeight: string;
 };
