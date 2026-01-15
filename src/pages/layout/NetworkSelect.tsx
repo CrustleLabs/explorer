@@ -15,7 +15,7 @@ import {
   useGetChainIdAndCache,
   useGetChainIdCached,
 } from "../../api/hooks/useGetNetworkChainIds";
-import {hiddenNetworks, NetworkName, networks} from "../../constants";
+import {hiddenNetworks, NetworkName} from "../../constants";
 import {useGlobalState} from "../../global-config/GlobalConfig";
 
 function NetworkAndChainIdCached({
@@ -91,10 +91,7 @@ export default function NetworkSelect() {
     selectNetwork(network_name as NetworkName);
   };
 
-  const visibleNetworkNames = React.useMemo(
-    () => Object.keys(networks).filter((n) => !hiddenNetworks.includes(n)),
-    [],
-  );
+  const visibleNetworkNames = React.useMemo(() => ["devnet"], []);
 
   return (
     <Box>

@@ -1,7 +1,6 @@
-import {useMemo, useState, useEffect, useLayoutEffect} from "react";
+import {useMemo, useState} from "react";
 import {createTheme, responsiveFontSizes} from "@mui/material";
 import getDesignTokens from "../../themes/theme";
-import useMediaQuery from "@mui/material/useMediaQuery";
 
 export interface ColorModeContext {
   toggleColorMode: () => void;
@@ -11,44 +10,12 @@ export interface ColorModeContext {
 type Mode = "light" | "dark";
 
 const useProvideColorMode = () => {
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)", {
-    noSsr: true,
-  })
-    ? "dark"
-    : "light";
+  // Permanently set to dark mode as requested
+  const [mode] = useState<Mode>("dark");
 
-  const [mode, setMode] = useState<Mode>("dark");
-
-  useLayoutEffect(() => {
-    const savedMode = localStorage.getItem("color_scheme") as Mode | null;
-    if (savedMode !== null) {
-      setMode(savedMode);
-    } else {
-      setMode(prefersDarkMode);
-    }
-  }, [prefersDarkMode]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      setMode(e.matches ? "dark" : "light");
-    };
-    mediaQuery.addEventListener("change", handleChange);
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
-    };
-  }, []);
-
+  // Removed auto-detect and toggle logic to enforce dark mode
   const toggleColorMode = () => {
-    setMode((prevMode) => {
-      if (prevMode === "light") {
-        localStorage.setItem("color_scheme", "dark");
-        return "dark";
-      } else {
-        localStorage.setItem("color_scheme", "light");
-        return "light";
-      }
-    });
+    // No-op
   };
 
   let theme = useMemo(

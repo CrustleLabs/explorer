@@ -55,7 +55,7 @@ type ApiKeys = {
 const apiKeys: ApiKeys = {
   mainnet: "AG-4SNLEBS1PFZ3PCMUCA3T3MW5WWF5JWLJX",
   testnet: "AG-6ZFXBNIVINVKOKLNAHNTFPDHY8WMBBD3X",
-  devnet: "AG-GA6I9F6H8NM1ACW8ZVJGMPUTJUKZ5KN6A",
+  devnet: undefined,
   decibel: undefined,
   shelbynet: "AG-MGQQAXV57YJVDQANQPBQDFJVFMUY912EC",
   local: undefined,
@@ -85,7 +85,7 @@ for (const key of Object.keys(networks)) {
   }
 }
 
-export const defaultNetworkName: NetworkName = "mainnet" as const;
+export const defaultNetworkName: NetworkName = "devnet" as const;
 
 if (!(defaultNetworkName in networks)) {
   throw `defaultNetworkName '${defaultNetworkName}' not in Networks!`;

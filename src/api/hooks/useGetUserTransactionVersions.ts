@@ -36,13 +36,14 @@ export default function useGetUserTransactionVersions(
   limit: number,
   startVersion?: number,
   offset?: number,
+  pollInterval: number = 5000,
 ): {versions: number[]; loading: boolean} {
   const topTxnsOnly = startVersion === undefined || offset === undefined;
   const {loading, error, data} = useGraphqlQuery<{
     user_transactions: {version: number}[];
   }>(topTxnsOnly ? TOP_USER_TRANSACTIONS_QUERY : USER_TRANSACTIONS_QUERY, {
     variables: {limit: limit, start_version: startVersion, offset: offset},
-    pollInterval: 5000,
+    pollInterval: pollInterval,
   });
 
   if ((loading && !data) || error) {

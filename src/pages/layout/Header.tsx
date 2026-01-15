@@ -3,13 +3,9 @@ import Toolbar from "@mui/material/Toolbar";
 import MuiAppBar from "@mui/material/AppBar";
 import Container from "@mui/material/Container";
 import NetworkSelect from "./NetworkSelect";
-import {useColorMode} from "../../context";
 import {useMediaQuery, useTheme} from "@mui/material";
-import Sun from "../../assets/svg/sun.svg?react";
-import Logo from "../../assets/logo.svg";
-import IconDark from "../../assets/svg/icon_dark.svg?react";
-import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
+import Logo from "../../assets/logo.svg";
 import Nav from "./Nav";
 import NavMobile from "./NavMobile";
 import {grey} from "../../themes/colors/aptosColorPalette";
@@ -38,7 +34,7 @@ export default function Header() {
     }
   };
 
-  const {toggleColorMode} = useColorMode();
+  // const {toggleColorMode} = useColorMode();
   const theme = useTheme();
   const logEvent = useLogEventWithBasic();
   const isDark = theme.palette.mode === "dark";
@@ -159,34 +155,6 @@ export default function Header() {
             {/* Right: Actions */}
             <Box sx={{display: "flex", alignItems: "center", gap: 1.5}}>
               <NetworkSelect />
-
-              <Button
-                onClick={toggleColorMode}
-                sx={{
-                  width: "32px",
-                  height: "32px",
-                  minWidth: "32px",
-                  borderRadius: "50%",
-                  padding: 0,
-                  color: "inherit",
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "rgba(255,255,255,0.1)"
-                      : "rgba(0,0,0,0.05)",
-                  "&:hover": {
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "rgba(255,255,255,0.2)"
-                        : "rgba(0,0,0,0.1)",
-                  },
-                }}
-              >
-                {theme.palette.mode === "light" ? (
-                  <IconDark style={{width: 20, height: 20}} />
-                ) : (
-                  <Sun style={{width: 20, height: 20}} />
-                )}
-              </Button>
 
               <Box
                 sx={{

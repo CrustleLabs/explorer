@@ -12,7 +12,7 @@ import {useGetLeverageTiers} from "../../../../api/hooks/useGetLeverageTiers";
 import BTCIcon from "../../../../assets/svg/perps/btc.svg?react";
 
 interface ActionDetailsRowProps {
-  order: DexPayload["orders"][0];
+  order: NonNullable<DexPayload["orders"]>[0];
   perpetuals: import("../../../../api/hooks/useGetPerpetuals").Perpetual[];
   sender: string;
 }

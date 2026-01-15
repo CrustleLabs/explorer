@@ -568,8 +568,18 @@ function UnifiedLayout({
   transactionData: ExtendedTransaction;
   txnAny: ExtendedTransaction;
 }) {
+  // Check if this is a DEX transaction (either Order or Transfer)
   const isDex =
-    transactionData.payload?.type.split("::").pop() === "dex_orderless_payload";
+    transactionData.payload?.type?.split("::")?.pop() ===
+    "dex_orderless_payload";
+
+  // Get the dex_type to distinguish between Order and Transfer
+  const dexType = isDex
+    ? (transactionData.payload as unknown as DexPayload)?.dex_type
+    : undefined;
+
+  // isOrder is true only when dex_type is "dex_payload"
+  const isOrder = isDex && dexType === "dex_payload";
 
   const {data: perpetuals} = useGetPerpetuals();
 
@@ -612,8 +622,9 @@ function UnifiedLayout({
                 sx={{
                   display: "inline-block",
                   padding: "4px 12px",
-                  borderRadius: "6px",
-                  backgroundColor: "rgba(224, 131, 78, 0.16)",
+                  borderRadius: "36px",
+                  backgroundColor: "rgba(238, 145, 76, 0.12)",
+                  border: "0.5px solid rgba(238, 145, 76, 0.32)",
                   color: "#E0834E",
                   fontSize: "14px",
                   fontWeight: 600,
@@ -735,10 +746,11 @@ function UnifiedLayout({
               color="#fff"
               fontSize="18px"
             >
-              {transactionData.payload.type.split("::").pop() ===
-              "dex_orderless_payload"
-                ? "Order"
-                : transactionData.payload.type.split("::").pop() ||
+              {isDex
+                ? isOrder
+                  ? "Order"
+                  : "Transfer"
+                : transactionData.payload?.type?.split("::")?.pop() ||
                   "Transaction"}
             </Typography>
           </Box>
@@ -857,21 +869,209 @@ function UnifiedLayout({
               </Stack>
             </Box>
 
-            {/* Action Details Row */}
-            {isDex &&
-              (transactionData.payload as unknown as DexPayload).orders[0] && (
+            {/* Action Details Row - Order Type */}
+            {isOrder &&
+              (transactionData.payload as unknown as DexPayload)
+                ?.orders?.[0] && (
                 <Box>
                   <Typography sx={sectionLabelStyle}>Action details</Typography>
                   <ActionDetailsRow
                     order={
                       (transactionData.payload as unknown as DexPayload)
-                        .orders[0]
+                        .orders![0]
                     }
                     perpetuals={perpetuals || []}
                     sender={transactionData.sender}
                   />
                 </Box>
               )}
+
+            {/* Action Details Row - Transfer Type */}
+            {isDex &&
+              !isOrder &&
+              (() => {
+                const payload =
+                  transactionData.payload as unknown as DexPayload;
+                const fromSubaccount = payload?.from_subaccount;
+                const toSubaccount = payload?.to_subaccount;
+                const amount = payload?.amount;
+
+                if (
+                  fromSubaccount !== undefined &&
+                  toSubaccount !== undefined &&
+                  amount
+                ) {
+                  const fromLabel =
+                    fromSubaccount === "0"
+                      ? "Capital Account"
+                      : `SubAccount ${fromSubaccount}`;
+                  const toLabel =
+                    toSubaccount === "0"
+                      ? "Capital Account"
+                      : `SubAccount ${toSubaccount}`;
+
+                  // Different colors for Main Account (green) and SubAccount (purple)
+                  const fromIsMain = fromSubaccount === "0";
+                  const toIsMain = toSubaccount === "0";
+                  const mainColor = "#03A881"; // Green
+                  const subColor = "#B692F4"; // Purple
+                  const fromColor = fromIsMain ? mainColor : subColor;
+                  const toColor = toIsMain ? mainColor : subColor;
+                  const fromBgColor = fromIsMain
+                    ? "rgba(3, 168, 129, 0.12)"
+                    : "rgba(182, 146, 244, 0.12)";
+                  const toBgColor = toIsMain
+                    ? "rgba(3, 168, 129, 0.12)"
+                    : "rgba(182, 146, 244, 0.12)";
+                  const fromBorderColor = fromIsMain
+                    ? "rgba(3, 168, 129, 0.24)"
+                    : "rgba(182, 146, 244, 0.24)";
+                  const toBorderColor = toIsMain
+                    ? "rgba(3, 168, 129, 0.24)"
+                    : "rgba(182, 146, 244, 0.24)";
+
+                  const displayAmount = (Number(amount) / 1e6).toLocaleString(
+                    undefined,
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    },
+                  );
+
+                  return (
+                    <Box>
+                      <Typography sx={sectionLabelStyle}>
+                        Action details
+                      </Typography>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1.5}
+                        sx={{
+                          flexWrap: "wrap",
+                          rowGap: 1,
+                        }}
+                      >
+                        {/* Send Badge */}
+                        <Box
+                          sx={{
+                            backgroundColor: "rgba(143, 199, 250, 0.12)",
+                            borderRadius: "74px",
+                            px: "8px",
+                            py: "4px",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: "#8FC7FA",
+                              fontSize: "12px",
+                              fontFamily: '"SF Pro", sans-serif',
+                              lineHeight: "16px",
+                            }}
+                          >
+                            Send
+                          </Typography>
+                        </Box>
+
+                        {/* USDC Icon and Amount */}
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          spacing={0.5}
+                        >
+                          <Box
+                            component="img"
+                            src="https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
+                            alt="USDC"
+                            sx={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: "50%",
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              color: "#fff",
+                              fontSize: "14px",
+                              fontFamily: '"SF Pro", sans-serif',
+                              lineHeight: "18px",
+                            }}
+                          >
+                            {displayAmount}
+                          </Typography>
+                        </Stack>
+
+                        {/* From */}
+                        <Typography
+                          sx={{
+                            color: "#999",
+                            fontSize: "14px",
+                            fontFamily: '"SF Pro", sans-serif',
+                            lineHeight: "18px",
+                          }}
+                        >
+                          From
+                        </Typography>
+                        <Box
+                          sx={{
+                            backgroundColor: fromBgColor,
+                            border: `1px solid ${fromBorderColor}`,
+                            borderRadius: "74px",
+                            px: "10px",
+                            py: "4px",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: fromColor,
+                              fontSize: "12px",
+                              fontFamily: '"SF Pro", sans-serif',
+                              lineHeight: "16px",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {fromLabel}
+                          </Typography>
+                        </Box>
+
+                        {/* To */}
+                        <Typography
+                          sx={{
+                            color: "#999",
+                            fontSize: "14px",
+                            fontFamily: '"SF Pro", sans-serif',
+                            lineHeight: "18px",
+                          }}
+                        >
+                          To
+                        </Typography>
+                        <Box
+                          sx={{
+                            backgroundColor: toBgColor,
+                            border: `1px solid ${toBorderColor}`,
+                            borderRadius: "74px",
+                            px: "10px",
+                            py: "4px",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: toColor,
+                              fontSize: "12px",
+                              fontFamily: '"SF Pro", sans-serif',
+                              lineHeight: "16px",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {toLabel}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  );
+                }
+                return null;
+              })()}
 
             {/* Timestamp Row */}
             <Box>

@@ -46,30 +46,45 @@ export default function SkeletonBlock({
  * Skeleton row for transaction table - matching Figma design
  * Has 6 visible skeleton columns: Version, Type, Status, User, Actions/Details, Timestamp
  */
+// 120px 100px 140px 200px 1fr 200px
 export function SkeletonTableRow() {
   return (
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: "90px 60px 100px 130px 1fr 140px",
+        gridTemplateColumns: "120px 100px 140px 200px 1fr 200px",
         alignItems: "center",
-        gap: 3,
+        gap: 0,
         py: 2,
         borderBottom: "1px solid rgba(255,255,255,0.06)",
+        px: 2,
       }}
     >
       {/* Version */}
       <SkeletonBlock width={70} height={28} />
+
       {/* Type */}
-      <SkeletonBlock width={28} height={28} borderRadius={6} />
+      <Box sx={{display: "flex", justifyContent: "center"}}>
+        <SkeletonBlock width={28} height={28} borderRadius={6} />
+      </Box>
+
       {/* Status */}
       <SkeletonBlock width={80} height={28} />
+
       {/* User */}
-      <SkeletonBlock width={110} height={28} />
+      <SkeletonBlock width={140} height={28} />
+
       {/* Actions / Details */}
-      <SkeletonBlock width="70%" height={28} sx={{maxWidth: 280}} />
+      <SkeletonBlock
+        width="40%"
+        height={28}
+        sx={{maxWidth: 280, minWidth: 150}}
+      />
+
       {/* Timestamp */}
-      <SkeletonBlock width={110} height={28} />
+      <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+        <SkeletonBlock width={140} height={28} />
+      </Box>
     </Box>
   );
 }
@@ -88,15 +103,22 @@ export function SkeletonTable({rowCount = 10}: SkeletonTableProps) {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "90px 60px 100px 130px 1fr 140px",
+          gridTemplateColumns: "120px 100px 140px 200px 1fr 200px",
           alignItems: "center",
-          gap: 3,
+          gap: 0,
           py: 1.5,
           borderBottom: "1px solid rgba(255,255,255,0.1)",
+          px: 2,
         }}
       >
         <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>Version</Box>
-        <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>
+        <Box
+          sx={{
+            color: "rgba(255,255,255,0.5)",
+            fontSize: 14,
+            textAlign: "center",
+          }}
+        >
           Type <span style={{opacity: 0.6}}>ⓘ</span>
         </Box>
         <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>Status</Box>

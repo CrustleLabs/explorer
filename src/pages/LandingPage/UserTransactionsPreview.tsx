@@ -5,11 +5,12 @@ import * as RRD from "react-router-dom";
 import {Stack, Typography} from "@mui/material";
 import HeaderSearch from "../layout/Search/Index";
 import TransactionsTable from "../Transactions/TransactionsTable";
-import TransactionsPreview, {PREVIEW_COLUMNS} from "./TransactionsPreview";
+import TransactionsPreview from "./TransactionsPreview";
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 import {SkeletonTable} from "../../components/SkeletonBlock";
 import {useWallet} from "@aptos-labs/wallet-adapter-react";
 import {useGetAccountTransactions} from "../../api/hooks/useGetAccountTransactions";
+import {PREVIEW_COLUMNS} from "../Transactions/TransactionsTable";
 
 const PREVIEW_TRANSACTIONS_COUNT = 10;
 

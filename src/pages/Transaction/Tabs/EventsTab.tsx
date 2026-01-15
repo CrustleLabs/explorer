@@ -4,8 +4,8 @@ import EmptyTabContent from "../../../components/IndividualPageContent/EmptyTabC
 import JsonViewCard from "../../../components/IndividualPageContent/JsonViewCard";
 import {
   useGetDexEvents,
-  DexEventType,
   DexEvent,
+  getEventTypeDisplayName,
 } from "../../../api/hooks/useGetDexEvents";
 import {Box, Stack, Typography, CircularProgress} from "@mui/material";
 import AccountAddressPill from "./Components/AccountAddressPill";
@@ -14,12 +14,59 @@ type EventsTabProps = {
   transaction: Types.Transaction;
 };
 
+// Helper to check if this is a Transfer type transaction
+function isTransferTransaction(transaction: Types.Transaction): boolean {
+  if (!("payload" in transaction)) return false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = (transaction as any).payload;
+  return (
+    payload?.type === "dex_orderless_payload" &&
+    payload?.dex_type === "dex_transfer_payload"
+  );
+}
+
+// Helper to extract event name from type string
+// e.g., "0x0000...0001::fungible_asset::Withdraw" -> "Withdraw"
+function extractEventName(eventType: string): string {
+  const parts = eventType.split("::");
+  return parts[parts.length - 1] || eventType;
+}
+
+// Filter out FeeStatement events
+function filterOutFeeEvents(events: Types.Event[]): Types.Event[] {
+  return events.filter(
+    (event) => !event.type.includes("::transaction_fee::FeeStatement"),
+  );
+}
+
 export default function EventsTab({transaction}: EventsTabProps) {
-  // Only Fetch Dex Events
-  const {data: dexEventsData, loading} = useGetDexEvents(transaction.hash);
+  const isTransfer = isTransferTransaction(transaction);
+
+  // Get block height for filtering
+  const blockHeight =
+    "version" in transaction
+      ? (
+          transaction as Types.UserTransaction & {
+            block_height?: string | number;
+          }
+        ).block_height
+      : undefined;
+
+  // Only Fetch Dex Events for non-Transfer transactions
+  const {data: dexEventsData, loading} = useGetDexEvents(
+    isTransfer ? "" : transaction.hash, // Skip GraphQL call for Transfer
+    blockHeight,
+  );
   const dexEvents = dexEventsData?.dex_events || [];
 
-  if (loading) {
+  // For Transfer transactions, use native events from the transaction
+  const nativeEvents = React.useMemo(() => {
+    if (!isTransfer) return [];
+    if (!("events" in transaction)) return [];
+    return filterOutFeeEvents((transaction as Types.UserTransaction).events);
+  }, [transaction, isTransfer]);
+
+  if (!isTransfer && loading) {
     return (
       <Box sx={{display: "flex", justifyContent: "center", p: 4}}>
         <CircularProgress color="inherit" />
@@ -27,7 +74,11 @@ export default function EventsTab({transaction}: EventsTabProps) {
     );
   }
 
-  if (dexEvents.length === 0) {
+  // No events to show
+  if (!isTransfer && dexEvents.length === 0) {
+    return <EmptyTabContent />;
+  }
+  if (isTransfer && nativeEvents.length === 0) {
     return <EmptyTabContent />;
   }
 
@@ -80,79 +131,157 @@ export default function EventsTab({transaction}: EventsTabProps) {
 
         {/* Content Stack */}
         <Stack spacing={2}>
-          {dexEvents.map((event: DexEvent, i: number) => (
-            <Box
-              key={`dex-event-${i}`}
-              sx={{
-                border: "1px solid rgba(255, 255, 255, 0.06)",
-                borderRadius: "16px",
-                p: "16px",
-                backgroundColor: "rgba(255, 255, 255, 0.02)",
-              }}
-            >
-              {/* Account Address */}
-              <Box mb={3}>
-                <Typography
-                  sx={{
-                    color: "#666",
-                    fontSize: "14px",
-                    fontFamily: '"SF Pro", sans-serif',
-                    lineHeight: "18px",
-                    mb: "12px",
-                  }}
-                >
-                  Account Address
-                </Typography>
-                <AccountAddressPill address={event.address} />
-              </Box>
+          {/* Display native events for Transfer transactions */}
+          {isTransfer &&
+            nativeEvents.map((event: Types.Event, i: number) => (
+              <Box
+                key={`native-event-${i}`}
+                sx={{
+                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  borderRadius: "16px",
+                  p: "16px",
+                  backgroundColor: "rgba(255, 255, 255, 0.02)",
+                }}
+              >
+                {/* Account Address */}
+                <Box mb={3}>
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                      mb: "12px",
+                    }}
+                  >
+                    Account Address
+                  </Typography>
+                  <AccountAddressPill
+                    address={(transaction as Types.UserTransaction).sender}
+                  />
+                </Box>
 
-              {/* Name */}
-              <Box mb={3}>
-                <Typography
-                  sx={{
-                    color: "#666",
-                    fontSize: "14px",
-                    fontFamily: '"SF Pro", sans-serif',
-                    lineHeight: "18px",
-                    mb: "12px",
-                  }}
-                >
-                  Name
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#fff",
-                    fontSize: "14px",
-                    fontFamily: '"SF Pro", sans-serif',
-                    lineHeight: "18px",
-                  }}
-                >
-                  {DexEventType[event.event_type] ||
-                    `Unknown (${event.event_type})`}
-                </Typography>
-              </Box>
+                {/* Name */}
+                <Box mb={3}>
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                      mb: "12px",
+                    }}
+                  >
+                    Name
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#fff",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                    }}
+                  >
+                    {extractEventName(event.type)}
+                  </Typography>
+                </Box>
 
-              {/* Data */}
-              <Box>
-                <Typography
-                  sx={{
-                    color: "#666",
-                    fontSize: "14px",
-                    fontFamily: '"SF Pro", sans-serif',
-                    lineHeight: "18px",
-                    mb: "12px",
-                  }}
-                >
-                  Data
-                </Typography>
-                <JsonViewCard
-                  data={event.event_payload}
-                  hideBackground={true}
-                  collapsedByDefault={false}
-                />
+                {/* Data */}
+                <Box>
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                      mb: "12px",
+                    }}
+                  >
+                    Data
+                  </Typography>
+                  <JsonViewCard
+                    data={event.data}
+                    hideBackground={true}
+                    collapsedByDefault={false}
+                  />
+                </Box>
               </Box>
-            </Box>
-          ))}
+            ))}
+
+          {/* Display Dex events for non-Transfer transactions */}
+          {!isTransfer &&
+            dexEvents.map((event: DexEvent, i: number) => (
+              <Box
+                key={`dex-event-${i}`}
+                sx={{
+                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  borderRadius: "16px",
+                  p: "16px",
+                  backgroundColor: "rgba(255, 255, 255, 0.02)",
+                }}
+              >
+                {/* Account Address */}
+                <Box mb={3}>
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                      mb: "12px",
+                    }}
+                  >
+                    Account Address
+                  </Typography>
+                  <AccountAddressPill address={event.address} />
+                </Box>
+
+                {/* Name */}
+                <Box mb={3}>
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                      mb: "12px",
+                    }}
+                  >
+                    Name
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#fff",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                    }}
+                  >
+                    {getEventTypeDisplayName(event.event_type)}
+                  </Typography>
+                </Box>
+
+                {/* Data */}
+                <Box>
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                      mb: "12px",
+                    }}
+                  >
+                    Data
+                  </Typography>
+                  <JsonViewCard
+                    data={event.event_payload}
+                    hideBackground={true}
+                    collapsedByDefault={false}
+                  />
+                </Box>
+              </Box>
+            ))}
         </Stack>
       </Box>
     </Box>

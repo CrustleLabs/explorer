@@ -9,6 +9,8 @@ import Error from "./Error";
 import TransactionTitle from "./Title";
 import TransactionTabs from "./Tabs";
 import {useGetBlockByVersion} from "../../api/hooks/useGetBlock";
+import TransactionDetailsSkeleton from "./Tabs/Components/TransactionDetailsSkeleton";
+import FadeIn from "../../components/FadeIn";
 
 export default function TransactionPage() {
   const [state] = useGlobalState();
@@ -28,7 +30,15 @@ export default function TransactionPage() {
   });
 
   if (isLoading) {
-    return null;
+    return (
+      <Grid container>
+        <Grid size={{xs: 12}}>
+          <Stack direction="column" spacing={4} marginTop={2}>
+            <TransactionDetailsSkeleton />
+          </Stack>
+        </Grid>
+      </Grid>
+    );
   }
 
   if (error) {
@@ -59,13 +69,15 @@ export default function TransactionPage() {
   };
 
   return (
-    <Grid container>
-      <Grid size={{xs: 12}}>
-        <Stack direction="column" spacing={4} marginTop={2}>
-          <TransactionTitle transaction={transactionWithBlock} />
-          <TransactionTabs transaction={transactionWithBlock} />
-        </Stack>
+    <FadeIn duration={400}>
+      <Grid container>
+        <Grid size={{xs: 12}}>
+          <Stack direction="column" spacing={4} marginTop={2}>
+            <TransactionTitle transaction={transactionWithBlock} />
+            <TransactionTabs transaction={transactionWithBlock} />
+          </Stack>
+        </Grid>
       </Grid>
-    </Grid>
+    </FadeIn>
   );
 }

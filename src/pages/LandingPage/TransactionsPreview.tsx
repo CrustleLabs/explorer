@@ -8,7 +8,7 @@ import Box from "@mui/material/Box";
 import * as RRD from "react-router-dom";
 import {Stack, Typography} from "@mui/material";
 import TransactionsTable, {
-  TransactionColumn,
+  PREVIEW_COLUMNS,
 } from "../Transactions/TransactionsTable";
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 import HeaderSearch from "../layout/Search/Index";
@@ -40,15 +40,6 @@ const viewAllLinkSx = {
   },
   textTransform: "none",
 };
-
-export const PREVIEW_COLUMNS: TransactionColumn[] = [
-  "version",
-  "type",
-  "status",
-  "sender",
-  "actionsDetails",
-  "timestamp",
-];
 
 function TransactionContent({
   data,

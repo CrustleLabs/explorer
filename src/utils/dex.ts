@@ -13,7 +13,9 @@ export const redColor = negativeColor; // Red (Short/Sell)
 
 export type DexPayload = {
   type: "dex_orderless_payload";
-  orders: Array<{
+  dex_type?: "dex_payload" | "dex_transfer_payload";
+  // Order-related fields
+  orders?: Array<{
     subaccount: string;
     symbol_id: number;
     symbol_type: number;
@@ -28,8 +30,14 @@ export type DexPayload = {
     reduce_only: boolean;
     position_mode: number;
   }>;
-  operation: number;
-  created_by: number;
+  // Transfer-related fields
+  from_subaccount?: string;
+  to_subaccount?: string;
+  amount?: string;
+  asset_id?: number;
+  nonce?: string;
+  operation?: number;
+  created_by?: number;
 };
 
 // USDC quote_atomic_resolution is fixed at -6

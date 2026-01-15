@@ -10,7 +10,7 @@ import {useGlobalState} from "../../global-config/GlobalConfig";
 import Box from "@mui/material/Box";
 import {useSearchParams} from "react-router-dom";
 import {Pagination, Stack} from "@mui/material";
-import TransactionsTable from "./TransactionsTable";
+import TransactionsTable, {PREVIEW_COLUMNS} from "./TransactionsTable";
 
 const LIMIT = 20;
 
@@ -68,7 +68,7 @@ function TransactionContent({data}: UseQueryResult<Array<Types.Transaction>>) {
     return null;
   }
 
-  return <TransactionsTable transactions={data} />;
+  return <TransactionsTable transactions={data} columns={PREVIEW_COLUMNS} />;
 }
 
 function TransactionsPageInner({data}: UseQueryResult<Types.IndexResponse>) {

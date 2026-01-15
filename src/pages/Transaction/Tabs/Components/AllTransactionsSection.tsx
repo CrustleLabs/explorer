@@ -203,8 +203,12 @@ export default function AllTransactionsSection({
               </TableRow>
             ) : positions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8}>
-                  <Typography color="#666" fontSize="12px">
+                <TableCell colSpan={8} sx={{textAlign: "center", py: 4}}>
+                  <Typography
+                    color="#666"
+                    fontSize="14px"
+                    fontFamily='"SF Pro", sans-serif'
+                  >
                     No open positions
                   </Typography>
                 </TableCell>

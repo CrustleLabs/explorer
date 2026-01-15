@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import GeneralTableRow from "../../components/Table/GeneralTableRow";
 import GeneralTableHeaderCell from "../../components/Table/GeneralTableHeaderCell";
 import HashButton, {HashType} from "../../components/HashButton";
-import {SkeletonTableRow} from "../../components/SkeletonBlock";
+import SkeletonBlock from "../../components/SkeletonBlock";
 import {Types} from "aptos";
 import {assertNever} from "../../utils";
 import {
@@ -300,7 +300,7 @@ function OrderInfoDisplay({
   showCount,
   orderCount,
 }: {
-  order: DexPayload["orders"][0];
+  order: NonNullable<DexPayload["orders"]>[0];
   perpetuals: ReturnType<typeof useGetPerpetuals>["data"];
   showCount?: boolean;
   orderCount?: number;
@@ -408,7 +408,7 @@ function TransactionActionsDetailsCell({transaction}: TransactionCellProps) {
     payload?.type === "dex_orderless_payload" && payload?.orders?.length > 0;
 
   if (isDexOrder) {
-    const orders = payload.orders as DexPayload["orders"];
+    const orders = payload.orders as NonNullable<DexPayload["orders"]>;
     const firstOrder = orders[0];
 
     return (
@@ -464,6 +464,15 @@ const TransactionCells = Object.freeze({
 
 export type TransactionColumn = keyof typeof TransactionCells;
 
+export const PREVIEW_COLUMNS: TransactionColumn[] = [
+  "version",
+  "type",
+  "status",
+  "sender",
+  "actionsDetails",
+  "timestamp",
+];
+
 const DEFAULT_COLUMNS: TransactionColumn[] = [
   "versionStatus",
   "type",
@@ -492,6 +501,74 @@ function TransactionRow({transaction, columns}: TransactionRowProps) {
   );
 }
 
+const TRANSACTION_SKELETON_WIDTHS: Partial<Record<TransactionColumn, number>> =
+  {
+    version: 120,
+    type: 28, // Circle
+    status: 80,
+    sender: 140, // Reduced from 200 to give space
+    timestamp: 140, // Reduced from 200 to give space
+    actionsDetails: undefined, // auto
+  };
+
+// Skeleton row component that returns a proper TableRow
+function TransactionTableSkeletonRow({
+  columns,
+}: {
+  columns: TransactionColumn[];
+}) {
+  return (
+    <TableRow>
+      {columns.map((column) => {
+        if (column === "type") {
+          return (
+            <GeneralTableCell
+              key={column}
+              sx={{width: 100, textAlign: "center"}}
+            >
+              <Box sx={{display: "flex", justifyContent: "center"}}>
+                <SkeletonBlock width={28} height={28} borderRadius={6} />
+              </Box>
+            </GeneralTableCell>
+          );
+        }
+
+        if (column === "actionsDetails") {
+          return (
+            <GeneralTableCell key={column}>
+              <SkeletonBlock
+                width="40%"
+                height={28}
+                sx={{maxWidth: 280, minWidth: 150}}
+              />
+            </GeneralTableCell>
+          );
+        }
+
+        if (column === "timestamp") {
+          return (
+            <GeneralTableCell
+              key={column}
+              sx={{width: 200, textAlign: "right"}}
+            >
+              <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+                <SkeletonBlock width={140} height={28} />
+              </Box>
+            </GeneralTableCell>
+          );
+        }
+
+        const width = TRANSACTION_SKELETON_WIDTHS[column];
+        return (
+          <GeneralTableCell key={column} sx={width ? {width} : undefined}>
+            <SkeletonBlock width={width || 100} height={28} />
+          </GeneralTableCell>
+        );
+      })}
+    </TableRow>
+  );
+}
+
 type UserTransactionRowProps = {
   version: number;
   columns: TransactionColumn[];
@@ -506,7 +583,7 @@ function UserTransactionRow({
   const {data: transaction, isError} = useGetTransaction(version.toString());
 
   if (!transaction || isError) {
-    return <SkeletonTableRow />;
+    return <TransactionTableSkeletonRow columns={columns} />;
   }
 
   return (
@@ -532,9 +609,9 @@ function TransactionHeaderCell({column}: TransactionHeaderCellProps) {
     case "versionStatus":
       return <GeneralTableHeaderCell header="Version" />;
     case "version":
-      return <GeneralTableHeaderCell header="Version" />;
+      return <GeneralTableHeaderCell header="Version" sx={{width: 120}} />;
     case "status":
-      return <GeneralTableHeaderCell header="Status" />;
+      return <GeneralTableHeaderCell header="Status" sx={{width: 140}} />;
     case "hash":
       return <GeneralTableHeaderCell header="Hash" />;
     case "type":
@@ -542,13 +619,19 @@ function TransactionHeaderCell({column}: TransactionHeaderCellProps) {
         <GeneralTableHeaderCell
           header="Type"
           tooltip={<TransactionTypeTooltip />}
-          sx={{textAlign: "center"}}
+          sx={{textAlign: "center", width: 100}}
         />
       );
     case "timestamp":
-      return <GeneralTableHeaderCell header="Timestamp" textAlignRight />;
+      return (
+        <GeneralTableHeaderCell
+          header="Timestamp"
+          textAlignRight
+          sx={{width: 200}}
+        />
+      );
     case "sender":
-      return <GeneralTableHeaderCell header="User" />;
+      return <GeneralTableHeaderCell header="User" sx={{width: 200}} />;
     case "receiverOrCounterParty":
       return <GeneralTableHeaderCell header="Sent To" />;
     case "function":
@@ -600,12 +683,14 @@ type UserTransactionsTableProps = {
   versions: number[];
   columns?: TransactionColumn[];
   address?: string;
+  loading?: boolean;
 };
 
 export function UserTransactionsTable({
   versions,
   columns = DEFAULT_COLUMNS,
   address,
+  loading = false,
 }: UserTransactionsTableProps) {
   return (
     <Table>
@@ -617,16 +702,20 @@ export function UserTransactionsTable({
         </TableRow>
       </TableHead>
       <GeneralTableBody>
-        {versions.map((version, i) => {
-          return (
-            <UserTransactionRow
-              key={`${i}-${version}`}
-              version={version}
-              columns={columns}
-              address={address}
-            />
-          );
-        })}
+        {loading && versions.length === 0
+          ? Array.from({length: 10}).map((_, i) => (
+              <TransactionTableSkeletonRow key={i} columns={columns} />
+            ))
+          : versions.map((version, i) => {
+              return (
+                <UserTransactionRow
+                  key={`${i}-${version}`}
+                  version={version}
+                  columns={columns}
+                  address={address}
+                />
+              );
+            })}
       </GeneralTableBody>
     </Table>
   );
