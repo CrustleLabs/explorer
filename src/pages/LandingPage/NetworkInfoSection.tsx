@@ -162,7 +162,7 @@ export default function NetworkInfoSection() {
           <StatsCard
             label="Total Supply"
             value={totalSupply ? formatSupply(totalSupply) : "-"}
-            tooltip="Amount of APT tokens flowing through the Aptos network."
+            tooltip="Amount of APT tokens flowing through the Settle Network."
             isLoading={!totalSupply}
           />
         </Grid>

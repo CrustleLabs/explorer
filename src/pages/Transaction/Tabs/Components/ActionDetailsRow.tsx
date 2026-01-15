@@ -10,6 +10,7 @@ import {
 import {useGetDexAccount} from "../../../../api/hooks/useGetDexAccount";
 import {useGetLeverageTiers} from "../../../../api/hooks/useGetLeverageTiers";
 import BTCIcon from "../../../../assets/svg/perps/btc.svg?react";
+import ETHIcon from "../../../../assets/svg/perps/eth.svg?react";
 
 interface ActionDetailsRowProps {
   order: NonNullable<DexPayload["orders"]>[0];
@@ -80,7 +81,11 @@ export default function ActionDetailsRow({
           justifyContent: "center",
         }}
       >
-        <BTCIcon width={20} height={20} />
+        {baseToken === "BTC" ? (
+          <BTCIcon width={20} height={20} />
+        ) : (
+          <ETHIcon width={13} height={20} />
+        )}
       </Box>
 
       {/* Ticker & Price */}
