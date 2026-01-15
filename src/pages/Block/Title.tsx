@@ -7,7 +7,7 @@ export default function BlockTitle({height}: {height: number}) {
 
   return (
     <Stack direction="row" alignItems="center" spacing={2} marginX={1}>
-      <Typography variant="h3">Block</Typography>
+      <Typography variant="h3">Blocks Details</Typography>
     </Stack>
   );
 }

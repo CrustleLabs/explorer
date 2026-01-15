@@ -158,3 +158,140 @@ export function SkeletonStatsValue() {
     />
   );
 }
+
+/**
+ * Skeleton row for blocks table
+ * Columns: Block, Age, Hash, Num Transactions, First Version, Last Version
+ */
+export function BlocksSkeletonTableRow() {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(6, 1fr)",
+        alignItems: "center",
+        gap: 0,
+        py: 2,
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        px: 2,
+      }}
+    >
+      {/* Block */}
+      <SkeletonBlock width={100} height={28} />
+
+      {/* Age */}
+      <SkeletonBlock width={80} height={28} />
+
+      {/* Hash */}
+      <SkeletonBlock width={140} height={28} />
+
+      {/* Num Transactions */}
+      <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+        <SkeletonBlock width={60} height={28} />
+      </Box>
+
+      {/* First Version */}
+      <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+        <SkeletonBlock width={120} height={28} />
+      </Box>
+
+      {/* Last Version */}
+      <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+        <SkeletonBlock width={120} height={28} />
+      </Box>
+    </Box>
+  );
+}
+
+/**
+ * Skeleton table for blocks page
+ */
+export function BlocksSkeletonTable({rowCount = 10}: SkeletonTableProps) {
+  return (
+    <Box
+      sx={{
+        backgroundColor: "#16141A",
+        border: "0.5px solid rgba(255, 255, 255, 0.06)",
+        borderRadius: "24px",
+        p: "20px",
+        mt: 4,
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Box
+          sx={{
+            height: 32,
+            width: 150,
+            backgroundColor: "#2C2835",
+            borderRadius: "4px",
+          }}
+        />
+        <Box
+          sx={{
+            height: 40,
+            width: 300,
+            backgroundColor: "rgba(255, 255, 255, 0.05)",
+            borderRadius: "100px",
+          }}
+        />
+      </Box>
+
+      <Box>
+        {/* Table header */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(6, 1fr)",
+            alignItems: "center",
+            gap: 0,
+            py: 1.5,
+            borderBottom: "1px solid rgba(255,255,255,0.1)",
+            px: 2,
+          }}
+        >
+          <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>Block</Box>
+          <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>Age</Box>
+          <Box sx={{color: "rgba(255,255,255,0.5)", fontSize: 14}}>Hash</Box>
+          <Box
+            sx={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: 14,
+              textAlign: "right",
+            }}
+          >
+            Num Transactions
+          </Box>
+          <Box
+            sx={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: 14,
+              textAlign: "right",
+            }}
+          >
+            First Version
+          </Box>
+          <Box
+            sx={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: 14,
+              textAlign: "right",
+            }}
+          >
+            Last Version
+          </Box>
+        </Box>
+        {/* Skeleton rows */}
+        {Array.from({length: rowCount}).map((_, index) => (
+          <BlocksSkeletonTableRow key={index} />
+        ))}
+      </Box>
+    </Box>
+  );
+}

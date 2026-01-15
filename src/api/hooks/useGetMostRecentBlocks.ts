@@ -15,15 +15,21 @@ export function useGetMostRecentBlocks(
     queryKey: ["ledgerInfo", state.network_value],
     queryFn: () => getLedgerInfo(state.aptos_client),
   });
-  const currentBlockHeight = parseInt(start ?? ledgerData?.block_height ?? "");
+  const currentBlockHeight = start
+    ? parseInt(start)
+    : ledgerData?.block_height
+      ? parseInt(ledgerData.block_height)
+      : undefined;
 
   const {isLoading: isLoading, data: blocks} = useQuery({
     queryKey: ["block", currentBlockHeight, state.network_value],
     queryFn: async () => {
-      if (currentBlockHeight !== undefined) {
+      if (currentBlockHeight !== undefined && !isNaN(currentBlockHeight)) {
         return getRecentBlocks(currentBlockHeight, count, state.aptos_client);
       }
+      return [];
     },
+    enabled: currentBlockHeight !== undefined && !isNaN(currentBlockHeight),
   });
 
   useEffect(() => {

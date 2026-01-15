@@ -1,5 +1,14 @@
 import * as React from "react";
-import {Table, TableHead, TableRow} from "@mui/material";
+import {
+  Table,
+  TableHead,
+  TableRow,
+  Box,
+  Stack,
+  Typography,
+  InputBase,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import GeneralTableRow from "../../components/Table/GeneralTableRow";
 import GeneralTableHeaderCell from "../../components/Table/GeneralTableHeaderCell";
 import {assertNever} from "../../utils";
@@ -10,6 +19,7 @@ import moment from "moment";
 import GeneralTableBody from "../../components/Table/GeneralTableBody";
 import GeneralTableCell from "../../components/Table/GeneralTableCell";
 import {Link, useAugmentToWithGlobalSearchParams} from "../../routing";
+import SkeletonBlock from "../../components/SkeletonBlock";
 
 function getAgeInSeconds(block: Types.Block): string {
   const blockTimestamp = parseTimestamp(block.block_timestamp);
@@ -146,33 +156,133 @@ function BlockHeaderCell({column}: BlockHeaderCellProps) {
 type BlocksTableProps = {
   blocks: Types.Block[];
   columns?: Column[];
+  isLoading?: boolean;
 };
+
+function BlocksSkeletonRow() {
+  return (
+    <GeneralTableRow>
+      <GeneralTableCell>
+        <SkeletonBlock width={100} height={24} />
+      </GeneralTableCell>
+      <GeneralTableCell>
+        <SkeletonBlock width={80} height={24} />
+      </GeneralTableCell>
+      <GeneralTableCell>
+        <SkeletonBlock width={140} height={24} />
+      </GeneralTableCell>
+      <GeneralTableCell sx={{textAlign: "right"}}>
+        <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+          <SkeletonBlock width={60} height={24} />
+        </Box>
+      </GeneralTableCell>
+      <GeneralTableCell sx={{textAlign: "right"}}>
+        <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+          <SkeletonBlock width={120} height={24} />
+        </Box>
+      </GeneralTableCell>
+      <GeneralTableCell sx={{textAlign: "right"}}>
+        <Box sx={{display: "flex", justifyContent: "flex-end"}}>
+          <SkeletonBlock width={120} height={24} />
+        </Box>
+      </GeneralTableCell>
+    </GeneralTableRow>
+  );
+}
 
 export default function BlocksTable({
   blocks,
   columns = DEFAULT_COLUMNS,
+  isLoading = false,
 }: BlocksTableProps) {
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   // TODO: Fix this better than this change here, this seems to be a bug elsewhere that I'm trying to fix on first load of page
   if (blocks == null) {
     blocks = [];
   } else if (!Array.isArray(blocks)) {
     blocks = [blocks];
   }
+
+  // Filter blocks based on search query (by height or hash)
+  const filteredBlocks = React.useMemo(() => {
+    if (!searchQuery) return blocks;
+    const lowerQuery = searchQuery.toLowerCase();
+    return blocks.filter((block) => {
+      return (
+        block.block_height.toString().includes(lowerQuery) ||
+        block.block_hash.toLowerCase().includes(lowerQuery)
+      );
+    });
+  }, [blocks, searchQuery]);
+
   return (
-    <Table>
-      <TableHead>
-        <TableRow>
-          {columns.map((column) => (
-            <BlockHeaderCell key={column} column={column} />
-          ))}
-        </TableRow>
-      </TableHead>
-      <GeneralTableBody>
-        {blocks &&
-          blocks.map((block: Types.Block, i: number) => {
-            return <BlockRow key={i} block={block} columns={columns} />;
-          })}
-      </GeneralTableBody>
-    </Table>
+    <Box
+      sx={{
+        backgroundColor: "#16141A",
+        border: "0.5px solid rgba(255, 255, 255, 0.06)",
+        borderRadius: "24px",
+        p: "20px",
+        mt: 4,
+      }}
+    >
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h5" fontWeight={700} color="#fff">
+          Latest Blocks
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: "rgba(255, 255, 255, 0.05)",
+            borderRadius: "100px",
+            padding: "8px 16px",
+            width: "300px",
+          }}
+        >
+          <SearchIcon sx={{color: "#888", mr: 1}} />
+          <InputBase
+            placeholder="Search Explorer"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{color: "#fff", width: "100%", fontSize: "14px"}}
+          />
+        </Box>
+      </Stack>
+      <Table>
+        <TableHead>
+          <TableRow>
+            {columns.map((column) => (
+              <BlockHeaderCell key={column} column={column} />
+            ))}
+          </TableRow>
+        </TableHead>
+        <GeneralTableBody>
+          {isLoading
+            ? Array.from({length: 10}).map((_, i) => (
+                <BlocksSkeletonRow key={i} />
+              ))
+            : filteredBlocks &&
+              filteredBlocks.map((block: Types.Block, i: number) => {
+                return <BlockRow key={i} block={block} columns={columns} />;
+              })}
+          {!isLoading && filteredBlocks && filteredBlocks.length === 0 && (
+            <TableRow>
+              <GeneralTableCell
+                colSpan={columns.length}
+                sx={{textAlign: "center", py: 4}}
+              >
+                <Typography color="text.secondary">No blocks found</Typography>
+              </GeneralTableCell>
+            </TableRow>
+          )}
+        </GeneralTableBody>
+      </Table>
+    </Box>
   );
 }

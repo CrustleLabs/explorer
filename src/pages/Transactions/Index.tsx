@@ -38,9 +38,11 @@ export default function TransactionsPage() {
     <Box>
       <PageHeader />
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h3" marginBottom={2}>
-          {allTxnOnly ? "All Transactions" : "User Transactions"}
-        </Typography>
+        {!allTxnOnly && (
+          <Typography variant="h3" marginBottom={2}>
+            User Transactions
+          </Typography>
+        )}
         {isGraphqlClientSupported && (
           <Button onClick={toggleUserTxnOnly} variant="text">
             {allTxnOnly ? `View User Transactions` : `View All Transactions`}

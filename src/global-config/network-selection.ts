@@ -71,19 +71,12 @@ export function useNetworkSelector() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [], // empty [] makes this effect only run once (on mount)
   );
-
   // Force redirect Legacy Local -> Devnet
-  if (selectedNetworkQueryParam === "local") {
-    // Force redirect: return devnet instead of local
-    // We can't call selectNetwork inside render, but we can return the correct value
-    // and let the useEffect fix the URL on next tick if needed, or just rely on the fact
-    // that we are returning 'devnet' to the app.
-    // Better: trigger the update in an effect or just modify the returned value.
-    // Since selectNetwork updates state, let's just return devnet for now
-    // and use an effect to update the URL/storage if possible.
-    // Actually, simplest is to just intercept it here:
-    return ["devnet", selectNetwork] as const;
-  }
+  useEffect(() => {
+    if (selectedNetworkQueryParam === "local") {
+      selectNetwork("devnet", {replace: true});
+    }
+  }, [selectedNetworkQueryParam, selectNetwork]);
 
   if (isValidNetworkName(selectedNetworkQueryParam)) {
     return [selectedNetworkQueryParam, selectNetwork] as const;

@@ -1,5 +1,14 @@
 import React, {useState} from "react";
-import {Box, Stack, Table, TableHead, TableRow} from "@mui/material";
+import {
+  Box,
+  Stack,
+  Table,
+  TableHead,
+  TableRow,
+  Typography,
+  InputBase,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import GeneralTableRow from "../../components/Table/GeneralTableRow";
 import GeneralTableHeaderCell from "../../components/Table/GeneralTableHeaderCell";
 import {assertNever} from "../../utils";
@@ -273,11 +282,30 @@ function ValidatorRow({validator, columns}: ValidatorRowProps) {
 
 export function ValidatorsTable() {
   const {validators} = useGetValidators();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [sortColumn, setSortColumn] = useState<Column>("votingPower");
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
+
+  // Filter validators based on search query
+  const filteredValidatorsRaw = React.useMemo(() => {
+    if (!searchQuery) return validators;
+    const lowerQuery = searchQuery.toLowerCase();
+    return validators.filter((v) => {
+      return (
+        v.owner_address.toLowerCase().includes(lowerQuery) ||
+        (v.operator_address &&
+          v.operator_address.toLowerCase().includes(lowerQuery)) ||
+        (v.location_stats?.city &&
+          v.location_stats.city.toLowerCase().includes(lowerQuery)) ||
+        (v.location_stats?.country &&
+          v.location_stats.country.toLowerCase().includes(lowerQuery))
+      );
+    });
+  }, [validators, searchQuery]);
+
   const sortedValidators = getSortedValidators(
-    validators,
+    filteredValidatorsRaw,
     sortColumn,
     sortDirection,
   );
@@ -285,27 +313,78 @@ export function ValidatorsTable() {
   const columns = DEFAULT_COLUMNS;
 
   return (
-    <Table>
-      <TableHead>
-        <TableRow sx={{verticalAlign: "bottom"}}>
-          {columns.map((column) => (
-            <ValidatorHeaderCell
-              key={column}
-              column={column}
-              direction={sortColumn === column ? sortDirection : undefined}
-              setDirection={setSortDirection}
-              setSortColumn={setSortColumn}
-            />
-          ))}
-        </TableRow>
-      </TableHead>
-      <GeneralTableBody>
-        {sortedValidators.map((validator: ValidatorData, i: number) => {
-          return (
-            <ValidatorRow key={i} validator={validator} columns={columns} />
-          );
-        })}
-      </GeneralTableBody>
-    </Table>
+    <Box
+      sx={{
+        backgroundColor: "#16141A",
+        border: "0.5px solid rgba(255, 255, 255, 0.06)",
+        borderRadius: "24px",
+        p: "20px",
+        mt: 4,
+      }}
+    >
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h5" fontWeight={700} color="#fff">
+          Validators
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: "rgba(255, 255, 255, 0.05)",
+            borderRadius: "100px",
+            padding: "8px 16px",
+            width: "300px",
+          }}
+        >
+          <SearchIcon sx={{color: "#888", mr: 1}} />
+          <InputBase
+            placeholder="Search Explorer"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{color: "#fff", width: "100%", fontSize: "14px"}}
+          />
+        </Box>
+      </Stack>
+
+      <Table>
+        <TableHead>
+          <TableRow sx={{verticalAlign: "bottom"}}>
+            {columns.map((column) => (
+              <ValidatorHeaderCell
+                key={column}
+                column={column}
+                direction={sortColumn === column ? sortDirection : undefined}
+                setDirection={setSortDirection}
+                setSortColumn={setSortColumn}
+              />
+            ))}
+          </TableRow>
+        </TableHead>
+        <GeneralTableBody>
+          {sortedValidators.map((validator: ValidatorData, i: number) => {
+            return (
+              <ValidatorRow key={i} validator={validator} columns={columns} />
+            );
+          })}
+          {sortedValidators.length === 0 && (
+            <TableRow>
+              <GeneralTableCell
+                colSpan={columns.length}
+                sx={{textAlign: "center", py: 4}}
+              >
+                <Typography color="text.secondary">
+                  No validators found
+                </Typography>
+              </GeneralTableCell>
+            </TableRow>
+          )}
+        </GeneralTableBody>
+      </Table>
+    </Box>
   );
 }

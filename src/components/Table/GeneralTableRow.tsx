@@ -1,6 +1,6 @@
 import {PropsWithChildren} from "react";
 import {SxProps, TableRow, useTheme} from "@mui/material";
-import {Link} from "../../routing";
+import {useNavigate} from "../../routing";
 
 export default function GeneralTableRow({
   to,
@@ -10,7 +10,9 @@ export default function GeneralTableRow({
   onClick?: () => void;
 }>) {
   const theme = useTheme();
-  const clickDisabled = !to;
+  const navigate = useNavigate();
+  const clickDisabled = !to && !props.onClick;
+
   const sx: SxProps = {
     textDecoration: "none",
     cursor: clickDisabled ? undefined : "pointer",
@@ -33,10 +35,14 @@ export default function GeneralTableRow({
         },
   };
 
-  // Note: This will give validateDOMNesting errors, but still work correctly
-  if (to) {
-    return <TableRow component={Link} to={to} sx={sx} {...props} />;
-  }
+  const handleRowClick = () => {
+    if (to) {
+      navigate(to);
+    }
+    if (props.onClick) {
+      props.onClick();
+    }
+  };
 
-  return <TableRow sx={sx} {...props} />;
+  return <TableRow onClick={handleRowClick} sx={sx} {...props} />;
 }

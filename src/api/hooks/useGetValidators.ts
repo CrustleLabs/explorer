@@ -94,17 +94,47 @@ export function useGetValidators() {
   const [validators, setValidators] = useState<ValidatorData[]>([]);
 
   useEffect(() => {
-    if (activeValidators.length > 0 && validatorsRawData.length > 0) {
-      const validatorsCopy = JSON.parse(JSON.stringify(validatorsRawData));
+    if (activeValidators.length > 0) {
+      if (validatorsRawData.length > 0) {
+        const validatorsCopy = JSON.parse(JSON.stringify(validatorsRawData));
 
-      validatorsCopy.forEach((validator: ValidatorData) => {
-        const activeValidator = activeValidators.find(
-          (activeValidator) => activeValidator.addr === validator.owner_address,
+        validatorsCopy.forEach((validator: ValidatorData) => {
+          const activeValidator = activeValidators.find(
+            (activeValidator) =>
+              activeValidator.addr === validator.owner_address,
+          );
+          validator.voting_power = activeValidator?.voting_power ?? "0";
+        });
+
+        setValidators(validatorsCopy);
+      } else {
+        // Fallback for networks without stats (Devnet, Local, etc.)
+        const fallbackValidators: ValidatorData[] = activeValidators.map(
+          (activeValidator) => ({
+            owner_address: activeValidator.addr,
+            operator_address: activeValidator.addr, // Default to owner if unknown
+            voting_power: activeValidator.voting_power,
+            governance_voting_record: "0",
+            last_epoch: 0,
+            last_epoch_performance: "-",
+            liveness: 0,
+            rewards_growth: 0,
+            apt_rewards_distributed: 0,
+            location_stats: {
+              peer_id: "",
+              latitude: 0,
+              longitude: 0,
+              city: "Unknown",
+              country: "Unknown",
+              region: "",
+              epoch: 0,
+            },
+          }),
         );
-        validator.voting_power = activeValidator?.voting_power ?? "0";
-      });
-
-      setValidators(validatorsCopy);
+        setValidators(fallbackValidators);
+      }
+    } else {
+      setValidators([]);
     }
   }, [activeValidators, validatorsRawData]);
 

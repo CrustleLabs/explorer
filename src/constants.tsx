@@ -10,10 +10,14 @@ export const devnetUrl =
 export const networks: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/v1",
   testnet: "https://api.testnet.staging.aptoslabs.com/v1",
-  devnet: "http://57.128.238.52:18080/v1",
+  devnet: import.meta.env.DEV
+    ? "/devnet-proxy/v1"
+    : "https://devnet-rpc.crustle.xyz/v1",
   decibel: "https://api.netna.staging.aptoslabs.com/v1",
   shelbynet: "https://api.shelbynet.staging.shelby.xyz/v1",
-  local: "http://57.128.238.52:18080/v1",
+  local: import.meta.env.DEV
+    ? "/devnet-proxy/v1"
+    : "https://devnet-rpc.crustle.xyz/v1",
 };
 
 // Indexer API URLs for fetching market data and account positions

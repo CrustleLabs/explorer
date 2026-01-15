@@ -1,9 +1,8 @@
 import * as React from "react";
 import BlocksTable from "./Table";
 import {useGetMostRecentBlocks} from "../../api/hooks/useGetMostRecentBlocks";
-import {Box, Typography} from "@mui/material";
+import {Box} from "@mui/material";
 import PageHeader from "../layout/PageHeader";
-import LoadingModal from "../../components/LoadingModal";
 import {usePageMetadata} from "../../components/hooks/usePageMetadata";
 import {useSearchParams} from "react-router-dom";
 
@@ -22,13 +21,9 @@ export default function BlocksPage() {
 
   return (
     <>
-      <LoadingModal open={isLoading} />
       <Box>
         <PageHeader />
-        <Typography variant="h3" marginBottom={2}>
-          Latest Blocks
-        </Typography>
-        <BlocksTable blocks={recentBlocks} />
+        <BlocksTable blocks={recentBlocks} isLoading={isLoading} />
       </Box>
     </>
   );

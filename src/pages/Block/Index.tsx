@@ -2,7 +2,8 @@ import {useParams} from "react-router-dom";
 import {Stack, Grid, Alert} from "@mui/material";
 import React from "react";
 import BlockTitle from "./Title";
-import BlockTabs from "./Tabs";
+import BlockOverviewCard from "./Components/BlockOverviewCard";
+import BlockTransactionsCard from "./Components/BlockTransactionsCard";
 import {useGetBlockByHeight} from "../../api/hooks/useGetBlock";
 import Error from "./Error";
 import PageHeader from "../layout/PageHeader";
@@ -39,7 +40,8 @@ export default function BlockPage() {
       <Grid size={{xs: 12}}>
         <Stack direction="column" spacing={4} marginTop={2}>
           <BlockTitle height={actualHeight} />
-          <BlockTabs data={data} />
+          <BlockOverviewCard data={data} />
+          <BlockTransactionsCard data={data} />
         </Stack>
       </Grid>
     </Grid>

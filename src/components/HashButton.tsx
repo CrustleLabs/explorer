@@ -4,8 +4,6 @@ import {
   BoxProps,
   Button,
   Typography,
-  Popover,
-  IconButton,
   useTheme,
   Tooltip,
   Stack,
@@ -13,11 +11,8 @@ import {
 import {
   codeBlockColor,
   codeBlockColorClickableOnHover,
-  grey,
   primary,
 } from "../themes/colors/aptosColorPalette";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import {
   isValidAccountAddress,
   truncate,
@@ -65,25 +60,6 @@ function getHashLinkStr(input: string, type: HashType): string {
   }
 }
 
-function HashLink(hash: string, type: HashType) {
-  switch (type) {
-    case HashType.ACCOUNT:
-    case HashType.TRANSACTION:
-    case HashType.OBJECT:
-    case HashType.COIN:
-    case HashType.FUNGIBLE_ASSET:
-      return (
-        <Link to={getHashLinkStr(hash, type)} color="inherit">
-          {hash}
-        </Link>
-      );
-    case HashType.OTHERS:
-      return <>{hash}</>;
-    default:
-      return assertNever(type);
-  }
-}
-
 interface HashButtonProps extends BoxProps {
   hash: string;
   type: HashType;
@@ -118,7 +94,6 @@ function AccountHashButtonInner({
       ? truncateAddressMiddle(evmAddress ?? address)
       : truncateAddress(evmAddress ?? address);
   const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
-  const theme = useTheme();
   const copyAddress = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     await navigator.clipboard.writeText(evmAddress ?? address);
@@ -137,7 +112,7 @@ function AccountHashButtonInner({
         "&:hover": {
           backgroundColor: codeBlockColorClickableOnHover,
         },
-        color: theme.palette.mode === "dark" ? "#83CCED" : "#0EA5E9",
+        color: "#FFF",
         padding: "4px 4px 4px 4px",
         overflow: "hidden",
         whiteSpace: "nowrap",
@@ -218,21 +193,7 @@ function HashButtonInner({
   img,
   ...props
 }: HashButtonInnerProps) {
-  const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-
-  const hashExpand = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-  };
-
-  const hashCollapse = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    setAnchorEl(null);
-  };
-
-  const open = Boolean(anchorEl);
-  const id = open ? "simple-popover" : undefined;
+  const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
 
   const imgIsEmoji = img && img.match(/^\p{Emoji}+$/u);
 
@@ -254,97 +215,120 @@ function HashButtonInner({
     );
   }
 
-  return (
-    <Box {...props}>
-      <Button
-        sx={{
-          textTransform: "none",
-          backgroundColor: `${
-            theme.palette.mode === "dark" ? grey[600] : grey[200]
-          }`,
-          display: "flex",
-          borderRadius: 1,
-          color: "inherit",
-          padding: "0.15rem 0.5rem 0.15rem 1rem",
-          "&:hover": {
-            backgroundColor: `${
-              theme.palette.mode === "dark" ? grey[500] : grey[300]
-            }`,
-          },
-          minWidth: 141,
-        }}
-        aria-describedby={id}
-        onClick={hashExpand}
-        variant="contained"
-        endIcon={<ChevronRightRoundedIcon sx={{opacity: "0.75", m: 0}} />}
-      >
-        {icon}
-        {label ? label : truncateHash}
-      </Button>
+  const copyAddress = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await navigator.clipboard.writeText(hash);
+    setCopyTooltipOpen(true);
+    setTimeout(() => {
+      setCopyTooltipOpen(false);
+    }, 2000);
+  };
 
-      <Popover
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
-        sx={{
-          overflow: "scroll",
-          ".MuiPaper-root": {boxShadow: "none"},
-          "&.MuiModal-root .MuiBackdrop-root": {
-            transition: "none!important",
-            backgroundColor: `${
-              theme.palette.mode === "dark"
-                ? "rgba(18,22,21,0.5)"
-                : "rgba(255,255,255,0.5)"
-            }`,
-          },
-        }}
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
-        onClose={hashCollapse}
-        anchorOrigin={{
-          vertical: "center",
-          horizontal: "left",
-        }}
-        transformOrigin={{
-          vertical: "center",
-          horizontal: "left",
-        }}
-      >
-        <Typography
+  const buttonContent = (
+    <Button
+      sx={{
+        textTransform: "none",
+        backgroundColor: "rgba(182,146,244,0.16)",
+        border: "0.5px solid rgba(217,203,251,0.12)",
+        display: "flex",
+        borderRadius: "100px",
+        color: "#FFF",
+        padding: "4px 4px 4px 4px",
+        "&:hover": {
+          backgroundColor: codeBlockColorClickableOnHover,
+        },
+        minWidth: "unset",
+      }}
+      variant="contained"
+    >
+      {/* Identicon-like placeholder or icon if exists (mimicking Account structure but kept simple if no icon) */}
+      {icon ? (
+        <Box
           sx={{
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            overflow: "hidden",
             display: "flex",
             alignItems: "center",
-            backgroundColor: `${
-              theme.palette.mode === "dark" ? grey[600] : grey[200]
-            }`,
-            px: 2,
-            py: "0.15rem",
-            fontSize: "14px",
-            overflow: "scroll",
-            scrollbarWidth: "none",
-            "&::-webkit-scrollbar": {
-              display: "none",
-            },
+            justifyContent: "center",
+            mr: 0.5,
           }}
         >
-          {HashLink(hash, type)}
-          <IconButton
-            aria-label="collapse hash"
-            onClick={hashCollapse}
-            sx={{
-              ml: 1,
-              mr: 0,
-              p: 0,
-              "&.MuiButtonBase-root:hover": {
-                bgcolor: "transparent",
-              },
-            }}
-          >
-            <ChevronLeftRoundedIcon sx={{opacity: "0.5"}} />
-          </IconButton>
-        </Typography>
-      </Popover>
+          {icon}
+        </Box>
+      ) : null}
+      <Typography
+        variant="body2"
+        sx={{mx: 0.5, fontSize: "14px", fontFamily: '"SF Pro", sans-serif'}}
+      >
+        {label ? label : truncateHash}
+      </Typography>
+
+      {/* Copy Button inside */}
+      <Tooltip title="Copied" open={copyTooltipOpen}>
+        <Button
+          sx={{
+            color: "inherit",
+            "&:hover": {
+              backgroundColor: "transparent",
+              opacity: 0.8,
+            },
+            padding: "0",
+            minWidth: "unset",
+            borderRadius: "50%",
+            width: 20,
+            height: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={copyAddress}
+          size="small"
+        >
+          <CopyIcon
+            width={16}
+            height={16}
+            style={{opacity: "0.75", margin: 0, display: "block"}}
+          />
+        </Button>
+      </Tooltip>
+    </Button>
+  );
+
+  return (
+    <Box {...props} component="span">
+      {/* Outer Tooltip for Full Hash on Hover */}
+      <Tooltip
+        title={hash}
+        enterDelay={500}
+        enterNextDelay={500}
+        componentsProps={{
+          tooltip: {
+            sx: {
+              backgroundColor: "#2e2d32",
+              borderRadius: "8px",
+              padding: "12px",
+              fontSize: "12px",
+              fontFamily: '"SF Pro", sans-serif',
+              color: "#FFF",
+              boxShadow: "0px 4px 20px rgba(0,0,0,0.5)",
+              maxWidth: "none",
+              whiteSpace: "nowrap",
+            },
+          },
+        }}
+      >
+        {/* If type is TRANSACTION, wrap in Link, otherwise just button */}
+        {type === HashType.TRANSACTION ? (
+          <Link to={`/txn/${hash}`} underline="none">
+            {buttonContent}
+          </Link>
+        ) : (
+          buttonContent
+        )}
+      </Tooltip>
     </Box>
   );
 }
@@ -433,7 +417,7 @@ function AssetHashButtonInner({
           "&:hover": {
             backgroundColor: codeBlockColorClickableOnHover,
           },
-          color: theme.palette.mode === "dark" ? "#83CCED" : "#0EA5E9",
+          color: "#FFF",
           padding: "0.15rem 0.35rem 0.15rem 1rem",
           overflow: "hidden",
           whiteSpace: "nowrap",

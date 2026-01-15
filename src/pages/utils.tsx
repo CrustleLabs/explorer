@@ -2,13 +2,18 @@ import moment from "moment";
 import {parseTypeTag} from "@aptos-labs/ts-sdk";
 import {CoinDescription} from "../api/hooks/useGetCoinList";
 
-export function ensureMillisecondTimestamp(timestamp: string): bigint {
+export function ensureMillisecondTimestamp(
+  timestamp: string | undefined,
+): bigint {
+  if (!timestamp) return 0n;
   /*
   Could be: 1646458457
         or: 1646440953658538
    */
   if (timestamp.length > 13) {
-    timestamp = timestamp.slice(0, 13);
+    // If timestamp is in microseconds (16 digits) or nanoseconds (19 digits)
+    // Convert to milliseconds (13 digits)
+    return BigInt(timestamp) / 1000n;
   }
   if (timestamp.length == 10) {
     timestamp = timestamp + "000";

@@ -9,7 +9,8 @@ import {getLedgerInfo, getTransactions} from "../../api";
 import {useGlobalState} from "../../global-config/GlobalConfig";
 import Box from "@mui/material/Box";
 import {useSearchParams} from "react-router-dom";
-import {Pagination, Stack} from "@mui/material";
+import {Pagination, Stack, Typography, InputBase} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import TransactionsTable, {PREVIEW_COLUMNS} from "./TransactionsTable";
 
 const LIMIT = 20;
@@ -91,7 +92,42 @@ function TransactionsPageInner({data}: UseQueryResult<Types.IndexResponse>) {
 
   return (
     <>
-      <Stack spacing={2}>
+      <Box
+        sx={{
+          backgroundColor: "#16141A",
+          border: "0.5px solid rgba(255, 255, 255, 0.06)",
+          borderRadius: "24px",
+          p: "20px",
+          mt: 4,
+        }}
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
+          <Typography variant="h5" fontWeight={700} color="#fff">
+            All Transactions
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              borderRadius: "100px",
+              padding: "8px 16px",
+              width: "300px",
+            }}
+          >
+            <SearchIcon sx={{color: "#888", mr: 1}} />
+            <InputBase
+              placeholder="Search Explorer"
+              sx={{color: "#fff", width: "100%", fontSize: "14px"}}
+            />
+          </Box>
+        </Stack>
+
         <Box sx={{width: "auto", overflowX: "auto"}}>
           <TransactionContent {...result} />
         </Box>
@@ -105,7 +141,7 @@ function TransactionsPageInner({data}: UseQueryResult<Types.IndexResponse>) {
             }}
           />
         </Box>
-      </Stack>
+      </Box>
     </>
   );
 }
