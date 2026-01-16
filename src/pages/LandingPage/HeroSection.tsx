@@ -2,6 +2,9 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {Grid} from "@mui/material";
 import ActivityGraph from "./ActivityGraph";
+import {Types} from "aptos";
+import {useGetMostRecentBlocks} from "../../api/hooks/useGetMostRecentBlocks";
+import {useMemo} from "react";
 
 // Gradient title styling
 const gradientTitleSx = {
@@ -37,7 +40,44 @@ const ACTIVITY_COLORS = [
   "#B692F4", // Darker Purple
 ];
 
+function calculateAvgBlockTime(blocks: Types.Block[]): number | null {
+  if (!blocks || blocks.length < 2) return null;
+
+  let totalDiff = 0n;
+  let count = 0;
+
+  for (let i = 0; i < blocks.length - 1; i++) {
+    const current = BigInt(blocks[i].block_timestamp);
+    const next = BigInt(blocks[i + 1].block_timestamp);
+    // Blocks are usually returned in descending order of height (latest first)
+    // So current (index i) should be > next (index i+1)
+    // But check the hook implementation/API return order.
+    // getRecentBlocks typically returns descending order (latest first).
+    // So diff = blocks[i].timestamp - blocks[i+1].timestamp
+    const diff = current - next;
+    if (diff > 0n) {
+      totalDiff += diff;
+      count++;
+    }
+  }
+
+  if (count === 0) return null;
+
+  const avgMicroseconds = Number(totalDiff) / count;
+  // Convert to milliseconds
+  return Math.round(avgMicroseconds / 1000);
+}
+
 export default function HeroSection() {
+  const {recentBlocks} = useGetMostRecentBlocks(undefined, 10);
+
+  const blockTimeMs = useMemo(() => {
+    return calculateAvgBlockTime(recentBlocks);
+  }, [recentBlocks]);
+
+  // Fallback to 99 if calculation fails or no data yet
+  const displayTime = blockTimeMs ?? 99;
+
   return (
     <Box sx={heroCardSx}>
       <Grid container spacing={4} alignItems="flex-start">
@@ -86,7 +126,7 @@ export default function HeroSection() {
                       fontWeight: "700",
                     }}
                   >
-                    99 ms
+                    {displayTime} ms
                   </Typography>
                 </Box>
               </Box>

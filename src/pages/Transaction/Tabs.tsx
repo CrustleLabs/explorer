@@ -24,9 +24,27 @@ import AllTransactionsSection from "./Tabs/Components/AllTransactionsSection";
 function getTabValues(transaction: Types.Transaction): TabValue[] {
   // For DEX/Order transactions, exclude "changes" tab
   if (
-    transaction.type === TransactionTypeName.User &&
-    (transaction as Types.UserTransaction).payload?.type ===
-      "dex_orderless_payload"
+    (transaction.type === TransactionTypeName.User &&
+      (transaction as Types.UserTransaction).payload?.type ===
+        "dex_orderless_payload") ||
+    ((transaction as Types.UserTransaction).payload?.type ===
+      "entry_function_payload" &&
+      ((
+        (transaction as Types.UserTransaction)
+          .payload as Types.TransactionPayload_EntryFunctionPayload
+      ).function?.endsWith("::aptos_coin::mint") ||
+        (
+          (transaction as Types.UserTransaction)
+            .payload as Types.TransactionPayload_EntryFunctionPayload
+        ).function?.endsWith("::usdc::mint") ||
+        (
+          (transaction as Types.UserTransaction)
+            .payload as Types.TransactionPayload_EntryFunctionPayload
+        ).function?.endsWith("::aptos_account::transfer") ||
+        (
+          (transaction as Types.UserTransaction)
+            .payload as Types.TransactionPayload_EntryFunctionPayload
+        ).function?.endsWith("::coin::transfer")))
   ) {
     return ["userTxnOverview", "events", "payload"];
   }
@@ -149,7 +167,15 @@ export default function TransactionTabs({
               (
                 (transaction as Types.UserTransaction)
                   .payload as Types.TransactionPayload_EntryFunctionPayload
-              ).function?.endsWith("::usdc::mint")))) ? (
+              ).function?.endsWith("::usdc::mint") ||
+              (
+                (transaction as Types.UserTransaction)
+                  .payload as Types.TransactionPayload_EntryFunctionPayload
+              ).function?.endsWith("::aptos_account::transfer") ||
+              (
+                (transaction as Types.UserTransaction)
+                  .payload as Types.TransactionPayload_EntryFunctionPayload
+              ).function?.endsWith("::coin::transfer")))) ? (
           <>
             <Grid size={{xs: 12, md: 8}}>
               <TabPanel value={value} transaction={transaction} />

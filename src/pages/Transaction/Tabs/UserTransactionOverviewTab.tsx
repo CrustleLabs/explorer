@@ -35,6 +35,7 @@ import ActionDetailsRow from "./Components/ActionDetailsRow";
 import {Hex} from "@aptos-labs/ts-sdk";
 import {DexPayload} from "../../../utils/dex";
 import React from "react";
+import IdenticonImg from "../../../components/IdenticonImg";
 
 type EconiaState = {
   orderID: string | undefined;
@@ -595,6 +596,18 @@ function UnifiedLayout({
 
   const isUSDC = mintFunction?.endsWith("::usdc::mint") ?? false;
 
+  // Check if this is a Transfer transaction
+  const entryFunction =
+    transactionData.payload?.type === "entry_function_payload"
+      ? (
+          transactionData.payload as Types.TransactionPayload_EntryFunctionPayload
+        )?.function
+      : undefined;
+
+  const isTransfer =
+    entryFunction === "0x1::aptos_account::transfer" ||
+    entryFunction === "0x1::coin::transfer";
+
   const {data: perpetuals} = useGetPerpetuals();
 
   const [copyTooltipOpen, setCopyTooltipOpen] = React.useState(false);
@@ -762,12 +775,14 @@ function UnifiedLayout({
             >
               {isMint
                 ? "Mint"
-                : isDex
-                  ? isOrder
-                    ? "Order"
-                    : "Transfer"
-                  : transactionData.payload?.type?.split("::")?.pop() ||
-                    "Transaction"}
+                : isTransfer
+                  ? "Transfer"
+                  : isDex
+                    ? isOrder
+                      ? "Order"
+                      : "Transfer"
+                    : transactionData.payload?.type?.split("::")?.pop() ||
+                      "Transaction"}
             </Typography>
           </Box>
         </Grid>
@@ -962,10 +977,12 @@ function UnifiedLayout({
                       <Stack
                         direction="row"
                         alignItems="center"
-                        spacing={1.5}
+                        spacing={1}
                         sx={{
-                          flexWrap: "wrap",
-                          rowGap: 1,
+                          whiteSpace: "nowrap",
+                          overflowX: "auto",
+                          scrollbarWidth: "none",
+                          "&::-webkit-scrollbar": {display: "none"},
                         }}
                       >
                         {/* Send Badge */}
@@ -1028,15 +1045,20 @@ function UnifiedLayout({
                         >
                           From
                         </Typography>
+                        {/* Sender Single Capsule */}
                         <Box
                           sx={{
+                            display: "flex",
+                            alignItems: "center",
                             backgroundColor: fromBgColor,
                             border: `1px solid ${fromBorderColor}`,
                             borderRadius: "74px",
-                            px: "10px",
+                            px: "8px",
                             py: "4px",
+                            gap: "8px",
                           }}
                         >
+                          {/* Label Part */}
                           <Typography
                             sx={{
                               color: fromColor,
@@ -1048,6 +1070,41 @@ function UnifiedLayout({
                           >
                             {fromLabel}
                           </Typography>
+
+                          {/* Vertical Divider */}
+                          <Box
+                            sx={{
+                              width: "1px",
+                              height: "12px",
+                              backgroundColor: "rgba(255, 255, 255, 0.12)",
+                            }}
+                          />
+
+                          {/* Address Part */}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontSize: "14px",
+                              fontFamily: '"SF Pro", sans-serif',
+                              lineHeight: "18px",
+                              color: "#fff",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 16,
+                                height: 16,
+                                borderRadius: "50%",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <IdenticonImg address={transactionData.sender} />
+                            </Box>
+                            {transactionData.sender.slice(0, 6)}...
+                            {transactionData.sender.slice(-4)}
+                          </Box>
                         </Box>
 
                         {/* To */}
@@ -1061,15 +1118,20 @@ function UnifiedLayout({
                         >
                           To
                         </Typography>
+                        {/* Receiver Single Capsule */}
                         <Box
                           sx={{
+                            display: "flex",
+                            alignItems: "center",
                             backgroundColor: toBgColor,
                             border: `1px solid ${toBorderColor}`,
                             borderRadius: "74px",
-                            px: "10px",
+                            px: "8px",
                             py: "4px",
+                            gap: "8px",
                           }}
                         >
+                          {/* Label Part */}
                           <Typography
                             sx={{
                               color: toColor,
@@ -1081,6 +1143,41 @@ function UnifiedLayout({
                           >
                             {toLabel}
                           </Typography>
+
+                          {/* Vertical Divider */}
+                          <Box
+                            sx={{
+                              width: "1px",
+                              height: "12px",
+                              backgroundColor: "rgba(255, 255, 255, 0.12)",
+                            }}
+                          />
+
+                          {/* Address Part */}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontSize: "14px",
+                              fontFamily: '"SF Pro", sans-serif',
+                              lineHeight: "18px",
+                              color: "#fff",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 16,
+                                height: 16,
+                                borderRadius: "50%",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <IdenticonImg address={transactionData.sender} />
+                            </Box>
+                            {transactionData.sender.slice(0, 6)}...
+                            {transactionData.sender.slice(-4)}
+                          </Box>
                         </Box>
                       </Stack>
                     </Box>
@@ -1406,8 +1503,320 @@ function UnifiedLayout({
           );
         })()}
 
-      {/* Standard Content for Non-DEX and Non-Mint */}
-      {!isDex && !isMint && (
+      {/* Transaction Details (Only for Transfer) */}
+      {isTransfer &&
+        (() => {
+          const payload =
+            transactionData.payload as Types.TransactionPayload_EntryFunctionPayload;
+          const receiverAddress = (payload?.arguments?.[0] as string) || "";
+          const amountRaw = (payload?.arguments?.[1] as string) || "0";
+          const senderAddress = transactionData.sender;
+
+          // Determine Symbol and Decimals
+          let symbol = "APT";
+          let decimals = 8;
+          if (
+            payload?.type_arguments &&
+            payload?.type_arguments.length > 0 &&
+            payload.type_arguments[0].includes("::")
+          ) {
+            const coinType = payload.type_arguments[0];
+            symbol = coinType.split("::").pop() || "Coin";
+            // Heuristic for decimals (simple for now, ideally fetch metadata)
+            if (symbol === "USDC") decimals = 6;
+            if (symbol === "USDT") decimals = 6;
+          }
+
+          const formattedAmount = (
+            Number(amountRaw) / Math.pow(10, decimals)
+          ).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: decimals,
+          });
+
+          return (
+            <Box
+              sx={{
+                backgroundColor: "#16141A",
+                border: "0.5px solid rgba(255, 255, 255, 0.06)",
+                borderRadius: "24px",
+                p: "20px",
+                mt: 4,
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
+                <Box
+                  sx={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    backgroundColor: "#8FC7FA", // Blue like Order
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    style={{width: 24, height: 24}}
+                  >
+                    <path
+                      d="M5.5 9.47139C6.94445 7.66667 9.44809 5.5 12.0006 5.5C15.3459 5.5 18.1009 8.02742 18.4603 11.277M5.5 9.47139V6.22139M5.5 9.47139H8.75M5.54129 12.7249C5.90198 15.9732 8.65633 18.4991 12.0006 18.4991C14.5514 18.4991 17.0556 16.3333 18.5 14.5269M18.5 14.5269V17.7769M18.5 14.5269H15.25"
+                      stroke="black"
+                      strokeWidth="1.86667"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Box>
+                <Typography
+                  variant="h6"
+                  fontFamily='"SF Pro", sans-serif'
+                  fontWeight={700}
+                  fontSize="20px"
+                  color="#fff"
+                >
+                  Transaction Details
+                </Typography>
+              </Stack>
+
+              <Stack spacing={3}>
+                {/* Hash Row */}
+                <Box>
+                  <Typography sx={sectionLabelStyle}>Hash</Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      backgroundColor: "rgba(102, 75, 158, 0.5)",
+                      border: "1px solid rgba(182, 146, 244, 0.24)",
+                      borderRadius: "40px",
+                      padding: "10px 16px",
+                      width: "fit-content",
+                      maxWidth: "100%",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: "#fff",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        fontFamily: '"SF Pro", monospace',
+                        letterSpacing: "0.01em",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {transactionData.hash}
+                    </Typography>
+                    <Tooltip
+                      title="Copied"
+                      open={copyTooltipOpen}
+                      disableFocusListener
+                      disableHoverListener
+                      disableTouchListener
+                      placement="right"
+                    >
+                      <Box
+                        component="span"
+                        onClick={() => copyHash(transactionData.hash)}
+                        sx={{
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          flexShrink: 0,
+                          color: "rgba(255, 255, 255, 0.6)",
+                          "&:hover": {
+                            color: "#FFFFFF",
+                          },
+                        }}
+                      >
+                        <ContentCopyIcon sx={{fontSize: 16}} />
+                      </Box>
+                    </Tooltip>
+                  </Box>
+                </Box>
+
+                {/* Action details Row */}
+                <Box>
+                  <Typography sx={sectionLabelStyle}>Action details</Typography>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    flexWrap="wrap"
+                    sx={{gap: "8px"}}
+                  >
+                    {/* Send Label */}
+                    <Box
+                      sx={{
+                        backgroundColor: "#313854",
+                        color: "#8FA3FF",
+                        padding: "2px 10px",
+                        borderRadius: "100px",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Send
+                    </Box>
+
+                    {/* Amount */}
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Box
+                        sx={{
+                          width: "16px",
+                          height: "16px",
+                          borderRadius: "50%",
+                          backgroundColor: "#fff",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          mr: 0.5,
+                        }}
+                      >
+                        <img
+                          src={
+                            symbol === "USDC"
+                              ? "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
+                              : "https://cryptologos.cc/logos/aptos-apt-logo.png"
+                          }
+                          alt={symbol}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "50%",
+                          }}
+                        />
+                      </Box>
+                      <Typography
+                        sx={{
+                          color: "#fff",
+                          fontSize: "14px",
+                          fontFamily: '"SF Pro", sans-serif',
+                          lineHeight: "18px",
+                        }}
+                      >
+                        {formattedAmount}
+                      </Typography>
+                    </Stack>
+
+                    {/* From */}
+                    <Typography
+                      sx={{
+                        color: "#999",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                      }}
+                    >
+                      From
+                    </Typography>
+
+                    {/* Sender Address Pill */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        backgroundColor: "rgba(255, 255, 255, 0.06)", // Darker pill
+                        border: "1px solid rgba(255, 255, 255, 0.12)",
+                        borderRadius: "100px",
+                        padding: "4px 12px",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                        color: "#fff",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: "50%",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <IdenticonImg address={senderAddress} />
+                      </Box>
+                      {senderAddress.slice(0, 6)}...
+                      {senderAddress.slice(-4)}
+                    </Box>
+
+                    {/* To */}
+                    <Typography
+                      sx={{
+                        color: "#999",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                      }}
+                    >
+                      To
+                    </Typography>
+
+                    {/* Receiver Address Pill */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        backgroundColor: "rgba(102, 75, 158, 0.12)", // Purple tint
+                        border: "1px solid rgba(102, 75, 158, 0.24)",
+                        borderRadius: "100px",
+                        padding: "4px 12px",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                        color: "#B692F4",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: "50%",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <IdenticonImg address={receiverAddress} />
+                      </Box>
+                      {receiverAddress.slice(0, 6)}...
+                      {receiverAddress.slice(-4)}
+                    </Box>
+                  </Stack>
+                </Box>
+
+                {/* Timestamp */}
+                <Box>
+                  <Typography sx={sectionLabelStyle}>Timestamp</Typography>
+                  <Box
+                    sx={{
+                      color: "#fff",
+                      fontSize: "14px", // Ensure style is applied to wrapper
+                      fontFamily: '"SF Pro", sans-serif',
+                    }}
+                  >
+                    <TimestampValue
+                      timestamp={transactionData.timestamp}
+                      ensureMilliSeconds
+                    />
+                  </Box>
+                </Box>
+              </Stack>
+            </Box>
+          );
+        })()}
+
+      {/* Transaction Details (Only for non-DEX and non-Mint and non-Transfer) */}
+      {!isDex && !isMint && !isTransfer && (
         <ContentBox>
           <ContentRow
             title="Hash"

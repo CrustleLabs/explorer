@@ -1,5 +1,5 @@
 import {useParams} from "react-router-dom";
-import {Stack, Grid, Alert} from "@mui/material";
+import {Stack, Grid, Alert, Box} from "@mui/material";
 import React from "react";
 import BlockTitle from "./Title";
 import BlockOverviewCard from "./Components/BlockOverviewCard";
@@ -7,6 +7,8 @@ import BlockTransactionsCard from "./Components/BlockTransactionsCard";
 import {useGetBlockByHeight} from "../../api/hooks/useGetBlock";
 import Error from "./Error";
 import PageHeader from "../layout/PageHeader";
+
+import BlockPageSkeleton from "./Components/BlockPageSkeleton";
 
 export default function BlockPage() {
   const {height} = useParams();
@@ -17,7 +19,12 @@ export default function BlockPage() {
   });
 
   if (isLoading) {
-    return null;
+    return (
+      <Box>
+        <PageHeader />
+        <BlockPageSkeleton />
+      </Box>
+    );
   }
 
   if (error) {

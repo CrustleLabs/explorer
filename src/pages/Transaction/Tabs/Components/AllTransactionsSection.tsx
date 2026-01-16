@@ -10,6 +10,7 @@ import {
   TableRow,
   Tab,
   Tabs,
+  CircularProgress,
 } from "@mui/material";
 import {Types} from "aptos";
 import {useGetIndexerSubaccounts} from "../../../../api/hooks/useGetIndexerSubaccounts";
@@ -17,6 +18,9 @@ import {useGetPerpetualMarkets} from "../../../../api/hooks/useGetPerpetuals";
 import {parsePositionsFromSubAccounts} from "../../../../utils/positionUtils";
 import BTCIcon from "../../../../assets/svg/perps/btc.svg?react";
 import ETHIcon from "../../../../assets/svg/perps/eth.svg?react";
+import {useGetDexTransfers} from "../../../../api/hooks/useGetDexTransfers";
+import IdenticonImg from "../../../../components/IdenticonImg";
+import moment from "moment";
 
 interface AllTransactionsSectionProps {
   transaction: Types.Transaction;
@@ -49,6 +53,8 @@ export default function AllTransactionsSection({
   const {data: indexerData, isLoading: isLoadingSubaccounts} =
     useGetIndexerSubaccounts(sender);
   const {data: markets, isLoading: isLoadingMarkets} = useGetPerpetualMarkets();
+  const {data: dexTransfersData, isLoading: isLoadingTransfers} =
+    useGetDexTransfers(sender);
 
   const positions = React.useMemo(() => {
     if (!indexerData?.subaccounts || !markets) return [];
@@ -144,18 +150,6 @@ export default function AllTransactionsSection({
           sx={{
             color: tabValue === 1 ? "#fff" : "#999",
             fontWeight: tabValue === 1 ? 600 : 400,
-            fontSize: "14px",
-            fontFamily: '"SF Pro", sans-serif',
-            textTransform: "none",
-            minHeight: "32px",
-            padding: "6px 12px",
-          }}
-        />
-        <Tab
-          label="Spot Balances"
-          sx={{
-            color: tabValue === 2 ? "#fff" : "#999",
-            fontWeight: tabValue === 2 ? 600 : 400,
             fontSize: "14px",
             fontFamily: '"SF Pro", sans-serif',
             textTransform: "none",
@@ -316,24 +310,348 @@ export default function AllTransactionsSection({
         </Table>
       )}
 
-      {/* Placeholder for other tabs */}
+      {/* Active Transactions Table */}
       {tabValue === 1 && (
-        <Typography
-          color="#666"
-          fontSize="14px"
-          fontFamily='"SF Pro", sans-serif'
+        <Table
+          size="small"
+          sx={{
+            "& td, & th": {
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              padding: "12px 0",
+            },
+          }}
         >
-          No active transactions
-        </Typography>
-      )}
-      {tabValue === 2 && (
-        <Typography
-          color="#666"
-          fontSize="14px"
-          fontFamily='"SF Pro", sans-serif'
-        >
-          No spot balances
-        </Typography>
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sx={{
+                  color: "#666",
+                  fontSize: "12px",
+                  fontFamily: '"SF Pro", sans-serif',
+                  pl: 1,
+                  width: "30%",
+                }}
+              >
+                Type / Amount
+              </TableCell>
+              <TableCell
+                sx={{
+                  color: "#666",
+                  fontSize: "12px",
+                  fontFamily: '"SF Pro", sans-serif',
+                  width: "50%",
+                }}
+              >
+                From / To
+              </TableCell>
+              <TableCell
+                sx={{
+                  color: "#666",
+                  fontSize: "12px",
+                  fontFamily: '"SF Pro", sans-serif',
+                  textAlign: "right",
+                  pr: 1,
+                  width: "20%",
+                }}
+              >
+                Time
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {isLoadingTransfers ? (
+              <TableRow>
+                <TableCell colSpan={3} sx={{textAlign: "center", py: 4}}>
+                  <CircularProgress size={24} sx={{color: "#8FC7FA"}} />
+                </TableCell>
+              </TableRow>
+            ) : !dexTransfersData?.dex_transfers ||
+              dexTransfersData.dex_transfers.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={3}
+                  sx={{textAlign: "center", py: 4, borderBottom: "none"}}
+                >
+                  <Typography
+                    color="#666"
+                    fontSize="14px"
+                    fontFamily='"SF Pro", sans-serif'
+                  >
+                    No active transactions
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              dexTransfersData.dex_transfers.map((transfer) => {
+                const isFromMain = String(transfer.sender_sub_number) === "0";
+                const isToMain = String(transfer.recipient_sub_number) === "0";
+
+                // Colors
+                const mainColor = "#03A881";
+                const subColor = "#B692F4";
+                const fromColor = isFromMain ? mainColor : subColor;
+                const toColor = isToMain ? mainColor : subColor;
+
+                const fromBgColor = isFromMain
+                  ? "rgba(3, 168, 129, 0.12)"
+                  : "rgba(182, 146, 244, 0.12)";
+                const toBgColor = isToMain
+                  ? "rgba(3, 168, 129, 0.12)"
+                  : "rgba(182, 146, 244, 0.12)";
+
+                const fromBorderColor = isFromMain
+                  ? "rgba(3, 168, 129, 0.24)"
+                  : "rgba(182, 146, 244, 0.24)";
+                const toBorderColor = isToMain
+                  ? "rgba(3, 168, 129, 0.24)"
+                  : "rgba(182, 146, 244, 0.24)";
+
+                const fromLabel = isFromMain
+                  ? "Capital Account"
+                  : `SubAccount ${transfer.sender_sub_number}`;
+                const toLabel = isToMain
+                  ? "Capital Account"
+                  : `SubAccount ${transfer.recipient_sub_number}`;
+
+                return (
+                  <TableRow key={transfer.id}>
+                    {/* Type / Amount */}
+                    <TableCell sx={{verticalAlign: "top", pl: 1, py: 2}}>
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Box
+                          sx={{
+                            backgroundColor: "rgba(143, 199, 250, 0.12)",
+                            borderRadius: "74px",
+                            px: "8px",
+                            py: "2px",
+                            width: "fit-content",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: "#8FC7FA",
+                              fontSize: "12px",
+                              fontFamily: '"SF Pro", sans-serif',
+                              lineHeight: "16px",
+                            }}
+                          >
+                            Send
+                          </Typography>
+                        </Box>
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          spacing={0.5}
+                        >
+                          <Box
+                            component="img"
+                            src="https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
+                            alt="USDC"
+                            sx={{width: 16, height: 16, borderRadius: "50%"}}
+                          />
+                          <Typography
+                            color="#fff"
+                            fontSize="13px"
+                            fontWeight={500}
+                            fontFamily='"SF Pro", sans-serif'
+                          >
+                            {(transfer.amount / 1e6).toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </Typography>
+                          <Typography
+                            color="#666"
+                            fontSize="13px"
+                            fontFamily='"SF Pro", sans-serif'
+                          >
+                            $
+                            {(transfer.amount / 1e6).toLocaleString(undefined, {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            })}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    </TableCell>
+
+                    {/* From / To */}
+                    <TableCell sx={{verticalAlign: "top", py: 2}}>
+                      <Stack spacing={2}>
+                        {/* From Row */}
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Typography
+                            color="#666"
+                            fontSize="13px"
+                            fontFamily='"SF Pro", sans-serif'
+                            width={32}
+                          >
+                            From
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              backgroundColor: fromBgColor,
+                              border: `1px solid ${fromBorderColor}`,
+                              borderRadius: "74px",
+                              px: "8px",
+                              py: "4px",
+                              gap: "8px",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                color: fromColor,
+                                fontSize: "12px",
+                                fontFamily: '"SF Pro", sans-serif',
+                                lineHeight: "16px",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {fromLabel}
+                            </Typography>
+                            <Box
+                              sx={{
+                                width: "1px",
+                                height: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.12)",
+                              }}
+                            />
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                fontSize: "14px",
+                                fontFamily: '"SF Pro", sans-serif',
+                                lineHeight: "18px",
+                                color: "#fff",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  width: 16,
+                                  height: 16,
+                                  borderRadius: "50%",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <IdenticonImg
+                                  address={transfer.sender_address}
+                                />
+                              </Box>
+                              {transfer.sender_address.slice(0, 6)}...
+                              {transfer.sender_address.slice(-4)}
+                            </Box>
+                          </Box>
+                        </Stack>
+
+                        {/* To Row */}
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Typography
+                            color="#666"
+                            fontSize="13px"
+                            fontFamily='"SF Pro", sans-serif'
+                            width={32}
+                          >
+                            To
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              backgroundColor: toBgColor,
+                              border: `1px solid ${toBorderColor}`,
+                              borderRadius: "74px",
+                              px: "8px",
+                              py: "4px",
+                              gap: "8px",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                color: toColor,
+                                fontSize: "12px",
+                                fontFamily: '"SF Pro", sans-serif',
+                                lineHeight: "16px",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {toLabel}
+                            </Typography>
+                            <Box
+                              sx={{
+                                width: "1px",
+                                height: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.12)",
+                              }}
+                            />
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                fontSize: "14px",
+                                fontFamily: '"SF Pro", sans-serif',
+                                lineHeight: "18px",
+                                color: "#fff",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  width: 16,
+                                  height: 16,
+                                  borderRadius: "50%",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <IdenticonImg
+                                  address={transfer.recipient_address}
+                                />
+                              </Box>
+                              {transfer.recipient_address.slice(0, 6)}...
+                              {transfer.recipient_address.slice(-4)}
+                            </Box>
+                          </Box>
+                        </Stack>
+                      </Stack>
+                    </TableCell>
+
+                    {/* Time */}
+                    <TableCell
+                      sx={{
+                        verticalAlign: "top",
+                        textAlign: "right",
+                        pr: 1,
+                        py: 2,
+                      }}
+                    >
+                      <Stack spacing={0.5}>
+                        <Typography
+                          color="#fff"
+                          fontSize="13px"
+                          fontFamily='"SF Pro", sans-serif'
+                        >
+                          {moment(transfer.created_at).format(
+                            "MM/DD/YYYY hh:mm:ss A",
+                          )}
+                        </Typography>
+                        <Typography
+                          color="#666"
+                          fontSize="12px"
+                          fontFamily='"SF Pro", sans-serif'
+                        >
+                          {moment(transfer.created_at).fromNow()}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
       )}
     </Box>
   );

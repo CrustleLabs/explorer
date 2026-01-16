@@ -3,7 +3,7 @@ import Toolbar from "@mui/material/Toolbar";
 import MuiAppBar from "@mui/material/AppBar";
 import Container from "@mui/material/Container";
 import NetworkSelect from "./NetworkSelect";
-import {useMediaQuery, useTheme} from "@mui/material";
+import {useTheme} from "@mui/material";
 import Box from "@mui/material/Box";
 import Logo from "../../assets/logo.svg";
 import Nav from "./Nav";
@@ -11,13 +11,13 @@ import NavMobile from "./NavMobile";
 import {grey} from "../../themes/colors/aptosColorPalette";
 import {useInView} from "react-intersection-observer";
 import FeatureBar from "./FeatureBar";
-import {WalletConnector} from "../../components/WalletConnector";
+// import {WalletConnector} from "../../components/WalletConnector";
 import {useGlobalState} from "../../global-config/GlobalConfig";
 import {useWallet} from "@aptos-labs/wallet-adapter-react";
 import {sendToGTM} from "../../api/hooks/useGoogleTagManager";
-import {Link, useNavigate} from "../../routing";
+import {Link} from "../../routing"; // , useNavigate
 import {useLogEventWithBasic} from "../Account/hooks/useLogEventWithBasic";
-import {addressFromWallet, sortPetraFirst} from "../../utils";
+import {addressFromWallet} from "../../utils"; // , sortPetraFirst
 import {AccountAddress} from "@aptos-labs/ts-sdk";
 
 export default function Header() {
@@ -44,10 +44,10 @@ export default function Header() {
     threshold: 0,
   });
 
-  const isOnMobile = !useMediaQuery(theme.breakpoints.up("md"));
+  // const isOnMobile = !useMediaQuery(theme.breakpoints.up("md"));
   const [state] = useGlobalState();
   const {account, wallet, network} = useWallet();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const walletAddressRef = useRef("");
   const accountAddress = addressFromWallet(account?.address);
   if (
@@ -156,7 +156,7 @@ export default function Header() {
             <Box sx={{display: "flex", alignItems: "center", gap: 1.5}}>
               <NetworkSelect />
 
-              <Box
+              {/* <Box
                 sx={{
                   width: "1px",
                   height: "20px",
@@ -165,10 +165,10 @@ export default function Header() {
                       ? "rgba(255,255,255,0.2)"
                       : "rgba(0,0,0,0.1)",
                 }}
-              />
+              /> */}
 
               <NavMobile />
-              {!isOnMobile && (
+              {/* {!isOnMobile && (
                 <WalletConnector
                   networkSupport={state.network_name}
                   handleNavigate={() =>
@@ -177,7 +177,7 @@ export default function Header() {
                   sortInstallableWallets={sortPetraFirst}
                   modalMaxWidth="sm"
                 />
-              )}
+              )} */}
             </Box>
           </Toolbar>
         </Container>

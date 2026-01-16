@@ -76,7 +76,13 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
       )?.function?.endsWith("::aptos_coin::mint") ||
         (
           txn.payload as Types.TransactionPayload_EntryFunctionPayload
-        )?.function?.endsWith("::usdc::mint")))
+        )?.function?.endsWith("::usdc::mint") ||
+        (
+          txn.payload as Types.TransactionPayload_EntryFunctionPayload
+        )?.function?.endsWith("::aptos_account::transfer") ||
+        (
+          txn.payload as Types.TransactionPayload_EntryFunctionPayload
+        )?.function?.endsWith("::coin::transfer")))
   ) {
     const isMint =
       txn.payload?.type === "entry_function_payload" &&

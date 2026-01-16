@@ -1,15 +1,12 @@
 import {useGlobalState} from "../../global-config/GlobalConfig";
-import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getLedgerInfo, getRecentBlocks} from "..";
-import {Types} from "aptos";
 
 export function useGetMostRecentBlocks(
   start: string | undefined,
   count: number,
 ) {
   const [state] = useGlobalState();
-  const [recentBlocks, setRecentBlocks] = useState<Types.Block[]>([]);
 
   const {isLoading: isLoadingLedgerData, data: ledgerData} = useQuery({
     queryKey: ["ledgerInfo", state.network_value],
@@ -32,23 +29,12 @@ export function useGetMostRecentBlocks(
     enabled: currentBlockHeight !== undefined && !isNaN(currentBlockHeight),
   });
 
-  useEffect(() => {
-    if (
-      currentBlockHeight !== undefined &&
-      !isLoadingLedgerData &&
-      !isLoading &&
-      blocks
-    ) {
-      setRecentBlocks(blocks);
-    }
-  }, [
-    currentBlockHeight,
-    state,
-    count,
-    isLoadingLedgerData,
-    isLoading,
-    blocks,
-  ]);
+  // Combine loading states to ensure we show loading while waiting for ledger data OR block data
+  // Also consider it loading if we don't have block data yet but are enabled
+  const combinedIsLoading = isLoadingLedgerData || isLoading;
 
-  return {recentBlocks, isLoading};
+  return {
+    recentBlocks: blocks || [],
+    isLoading: combinedIsLoading,
+  };
 }

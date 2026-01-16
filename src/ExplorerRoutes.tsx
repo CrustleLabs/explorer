@@ -20,9 +20,12 @@ const ValidatorPage = lazy(() => import("./pages/DelegatoryValidator"));
 const AnalyticsPage = lazy(() => import("./pages/Analytics/Index"));
 const VerificationPage = lazy(() => import("./pages/Verification/Index"));
 
+import ScrollToTop from "./components/ScrollToTop";
+
 export default function ExplorerRoutes() {
   return (
     <ExplorerLayout>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />

@@ -422,18 +422,6 @@ export default function TransactionDetailsSkeleton() {
               padding: "6px 12px",
             }}
           />
-          <Tab
-            label="Spot Balances"
-            sx={{
-              color: "#999",
-              fontWeight: 400,
-              fontSize: "14px",
-              fontFamily: '"SF Pro", sans-serif',
-              textTransform: "none",
-              minHeight: "32px",
-              padding: "6px 12px",
-            }}
-          />
         </Tabs>
 
         {/* Table Header */}
