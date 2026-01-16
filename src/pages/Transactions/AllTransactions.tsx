@@ -114,16 +114,50 @@ function TransactionsPageInner({data}: UseQueryResult<Types.IndexResponse>) {
             sx={{
               display: "flex",
               alignItems: "center",
-              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              gap: "8px",
+              backgroundColor: "transparent",
+              border: "1px solid rgba(255, 255, 255, 0.16)",
               borderRadius: "100px",
-              padding: "8px 16px",
-              width: "300px",
+              padding: "12px 16px",
+              width: "350px",
+              height: "48px",
+              outline: "none",
+              "&:focus-within": {
+                outline: "none",
+                border: "1px solid rgba(255, 255, 255, 0.16)",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                border: "none",
+              },
+              "& .MuiInputBase-root": {
+                border: "none",
+              },
             }}
           >
-            <SearchIcon sx={{color: "#888", mr: 1}} />
+            <SearchIcon
+              sx={{color: "rgba(255, 255, 255, 0.4)", fontSize: 20}}
+            />
             <InputBase
               placeholder="Search Explorer"
-              sx={{color: "#fff", width: "100%", fontSize: "14px"}}
+              sx={{
+                color: "#fff",
+                width: "100%",
+                fontSize: "14px",
+                fontFamily: '"SF Pro", sans-serif',
+                lineHeight: "18px",
+                border: "none",
+                outline: "none",
+                "& fieldset": {
+                  border: "none",
+                },
+                "& input::placeholder": {
+                  color: "rgba(255, 255, 255, 0.4)",
+                  opacity: 1,
+                },
+                "& input:focus": {
+                  outline: "none",
+                },
+              }}
             />
           </Box>
         </Stack>

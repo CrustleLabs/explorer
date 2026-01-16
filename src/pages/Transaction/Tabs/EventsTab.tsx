@@ -42,20 +42,9 @@ function filterOutFeeEvents(events: Types.Event[]): Types.Event[] {
 export default function EventsTab({transaction}: EventsTabProps) {
   const isTransfer = isTransferTransaction(transaction);
 
-  // Get block height for filtering
-  const blockHeight =
-    "version" in transaction
-      ? (
-          transaction as Types.UserTransaction & {
-            block_height?: string | number;
-          }
-        ).block_height
-      : undefined;
-
   // Only Fetch Dex Events for non-Transfer transactions
   const {data: dexEventsData, loading} = useGetDexEvents(
     isTransfer ? "" : transaction.hash, // Skip GraphQL call for Transfer
-    blockHeight,
   );
   const dexEvents = dexEventsData?.dex_events || [];
 

@@ -34,6 +34,7 @@ export default function TransactionPage() {
       <Grid container>
         <Grid size={{xs: 12}}>
           <Stack direction="column" spacing={4} marginTop={2}>
+            <TransactionTitle />
             <TransactionDetailsSkeleton />
           </Stack>
         </Grid>

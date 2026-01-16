@@ -26,23 +26,6 @@ export type DexEvent = {
   created_height?: number;
 };
 
-const GET_DEX_EVENTS = gql`
-  query GetDexEvents($transaction_id: String!, $block_height: bigint) {
-    dex_events(
-      where: {
-        transaction_id: {_eq: $transaction_id}
-        created_height: {_eq: $block_height}
-      }
-    ) {
-      id
-      address
-      event_payload
-      event_type
-      created_height
-    }
-  }
-`;
-
 // Query without block_height filter (for backwards compatibility)
 const GET_DEX_EVENTS_NO_HEIGHT = gql`
   query GetDexEventsNoHeight($transaction_id: String!) {
@@ -56,20 +39,34 @@ const GET_DEX_EVENTS_NO_HEIGHT = gql`
   }
 `;
 
-export function useGetDexEvents(
-  transaction_id: string | undefined,
-  block_height?: string | number,
-) {
-  // Use query with block_height filter if provided
-  const query = block_height ? GET_DEX_EVENTS : GET_DEX_EVENTS_NO_HEIGHT;
-  const variables = block_height
-    ? {transaction_id, block_height: Number(block_height)}
-    : {transaction_id};
+export function useGetDexEvents(transaction_id: string | undefined) {
+  // Always query all events without block height filter
+  const query = GET_DEX_EVENTS_NO_HEIGHT;
+  const variables = {transaction_id};
 
-  return useGraphqlQuery<{dex_events: DexEvent[]}>(query, {
+  const result = useGraphqlQuery<{dex_events: DexEvent[]}>(query, {
     variables,
     skip: !transaction_id,
   });
+
+  // Client-side filtering for minimum block height
+  let filteredData = result.data;
+  if (result.data?.dex_events && result.data.dex_events.length > 0) {
+    const events = result.data.dex_events;
+    // Find valid heights
+    const heights = events
+      .map((e) => e.created_height)
+      .filter((h): h is number => h !== undefined && h !== null);
+
+    if (heights.length > 0) {
+      const minHeight = Math.min(...heights);
+      filteredData = {
+        dex_events: events.filter((e) => e.created_height === minHeight),
+      };
+    }
+  }
+
+  return {...result, data: filteredData};
 }
 
 /**

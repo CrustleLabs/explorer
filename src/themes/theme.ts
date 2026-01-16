@@ -308,10 +308,7 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
       styleOverrides: {
         root: ({theme}) => ({
           "&.Mui-focused": {
-            boxShadow: `0 0 0 2px ${alpha(
-              theme.palette.mode === "dark" ? primaryColor : primaryColorToned,
-              0.35,
-            )}`,
+            // Removed purple box-shadow to allow custom focus styling
           },
           ".MuiOutlinedInput-notchedOutline": {
             borderColor: theme.palette.lineShade.main,

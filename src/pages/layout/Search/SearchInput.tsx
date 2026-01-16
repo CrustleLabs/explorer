@@ -24,13 +24,13 @@ export default function SearchInput({loading, ...params}: SearchInputProps) {
             height: "100%", // Explicitly inherit height
             paddingRight: "12px", // Adjust padding
             "& fieldset": {
-              borderColor: "#CDB9F9",
+              borderColor: "rgba(255, 255, 255, 0.16)",
             },
             "&:hover fieldset": {
-              borderColor: "#CDB9F9",
+              borderColor: "rgba(255, 255, 255, 0.16)",
             },
             "&.Mui-focused fieldset": {
-              borderColor: "#CDB9F9",
+              borderColor: "rgba(255, 255, 255, 0.16)",
               borderWidth: "1px", // Prevent thickening on focus if desired
             },
           },

@@ -5,13 +5,16 @@ import {Types} from "aptos";
 import {usePageMetadata} from "../../components/hooks/usePageMetadata";
 
 type TransactionTitleProps = {
-  transaction: Types.Transaction;
+  transaction?: Types.Transaction;
 };
 
 export default function TransactionTitle({transaction}: TransactionTitleProps) {
-  let title = `Transaction ${transaction.hash}`;
-  if ("version" in transaction) {
-    title = ` Transaction ${transaction.version} (${transaction.hash})`;
+  let title = "Transaction Details";
+  if (transaction) {
+    title = `Transaction ${transaction.hash}`;
+    if ("version" in transaction) {
+      title = ` Transaction ${transaction.version} (${transaction.hash})`;
+    }
   }
 
   usePageMetadata({title});
