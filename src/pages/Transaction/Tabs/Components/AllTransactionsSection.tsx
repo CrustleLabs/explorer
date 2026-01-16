@@ -36,7 +36,16 @@ export default function AllTransactionsSection({
   const [tabValue, setTabValue] = React.useState(0);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const sender = (transaction as any).sender;
+  const txnAny = transaction as any;
+  const isMint =
+    txnAny.payload?.type === "entry_function_payload" &&
+    (txnAny.payload?.function?.endsWith("::aptos_coin::mint") ||
+      txnAny.payload?.function?.endsWith("::usdc::mint"));
+
+  const sender = isMint
+    ? txnAny.payload?.arguments?.[0] || txnAny.sender
+    : txnAny.sender;
+
   const {data: indexerData, isLoading: isLoadingSubaccounts} =
     useGetIndexerSubaccounts(sender);
   const {data: markets, isLoading: isLoadingMarkets} = useGetPerpetualMarkets();

@@ -68,10 +68,33 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
     setTimeout(() => setTooltipOpen(false), 2000);
   };
 
-  if (txn.payload?.type === "dex_orderless_payload") {
+  if (
+    txn.payload?.type === "dex_orderless_payload" ||
+    (txn.payload?.type === "entry_function_payload" &&
+      ((
+        txn.payload as Types.TransactionPayload_EntryFunctionPayload
+      )?.function?.endsWith("::aptos_coin::mint") ||
+        (
+          txn.payload as Types.TransactionPayload_EntryFunctionPayload
+        )?.function?.endsWith("::usdc::mint")))
+  ) {
+    const isMint =
+      txn.payload?.type === "entry_function_payload" &&
+      ((
+        txn.payload as Types.TransactionPayload_EntryFunctionPayload
+      )?.function?.endsWith("::aptos_coin::mint") ||
+        (
+          txn.payload as Types.TransactionPayload_EntryFunctionPayload
+        )?.function?.endsWith("::usdc::mint"));
+
+    const effectiveUser = isMint
+      ? (txn.payload as Types.TransactionPayload_EntryFunctionPayload)
+          ?.arguments?.[0] || txn.sender
+      : txn.sender;
+
     // Fetch real account data from indexer API
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const {data: subaccountsData} = useGetIndexerSubaccounts(txn.sender);
+    const {data: subaccountsData} = useGetIndexerSubaccounts(effectiveUser);
 
     // Calculate Total Value: sum of all subaccounts' equity
     const totalValue =
@@ -164,7 +187,7 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
               }}
             >
               {/* Address-based random avatar */}
-              {txn.sender && (
+              {effectiveUser && (
                 <Box
                   sx={{
                     width: 28,
@@ -174,7 +197,7 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
                     flexShrink: 0,
                   }}
                 >
-                  <IdenticonImg address={txn.sender} />
+                  <IdenticonImg address={effectiveUser} />
                 </Box>
               )}
               <Typography
@@ -189,8 +212,8 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
                   whiteSpace: "nowrap",
                 }}
               >
-                {txn.sender
-                  ? `${txn.sender.slice(0, 10)}...${txn.sender.slice(-8)}`
+                {effectiveUser
+                  ? `${effectiveUser.slice(0, 10)}...${effectiveUser.slice(-8)}`
                   : "-"}
               </Typography>
               <Tooltip
@@ -203,7 +226,7 @@ export default function TransactionSidebar({transaction}: SidebarProps) {
               >
                 <Box
                   component="span"
-                  onClick={(e) => handleCopy(e, txn.sender || "")}
+                  onClick={(e) => handleCopy(e, effectiveUser || "")}
                   sx={{
                     cursor: "pointer",
                     display: "flex",

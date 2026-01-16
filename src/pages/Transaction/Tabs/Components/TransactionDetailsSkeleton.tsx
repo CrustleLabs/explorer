@@ -246,30 +246,33 @@ export default function TransactionDetailsSkeleton() {
                   width: "24px",
                   height: "24px",
                   borderRadius: "50%",
-                  backgroundColor: "#EE914C",
+                  backgroundColor: "#B692F4",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
                 }}
               >
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
                   fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M12.373 4.42285C14.9009 4.42289 16.9502 6.47212 16.9502 9C16.9502 11.5279 14.9009 13.5771 12.373 13.5771C11.6391 13.5771 10.9419 13.4033 10.3242 13.0938C9.72868 12.7951 9.48765 12.0703 9.78613 11.4746C10.0847 10.879 10.8096 10.6382 11.4053 10.9365C11.695 11.0817 12.0229 11.1641 12.373 11.1641C13.5681 11.164 14.5371 10.1951 14.5371 9C14.5371 7.80492 13.5681 6.83598 12.373 6.83594C11.1779 6.83594 10.209 7.8049 10.209 9C10.209 9.04693 10.2054 9.09313 10.2002 9.13867C10.1268 11.6024 8.10846 13.5771 5.62695 13.5771C3.09907 13.5771 1.04984 11.5279 1.0498 9C1.04984 6.47212 3.09907 4.42289 5.62695 4.42285C6.36089 4.42285 7.05807 4.59673 7.67578 4.90625C8.27133 5.20489 8.51235 5.92971 8.21387 6.52539C7.91535 7.12105 7.19045 7.36181 6.59473 7.06348C6.305 6.9183 5.97714 6.83594 5.62695 6.83594C4.43188 6.83598 3.46292 7.80492 3.46289 9C3.46293 10.1951 4.43188 11.164 5.62695 11.1641C6.82206 11.1641 7.79098 10.1951 7.79102 9C7.79102 8.95278 7.79354 8.90616 7.79883 8.86035C7.87269 6.39707 9.89186 4.42285 12.373 4.42285Z"
-                    fill="black"
+                    d="M16.6523 17.2304C15.5872 15.8247 13.8996 14.9167 12 14.9167C10.1004 14.9167 8.4128 15.8247 7.34769 17.2304M16.6523 17.2304C18.0927 15.9483 19 14.0801 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 14.0801 5.90728 15.9483 7.34769 17.2304M16.6523 17.2304C15.4156 18.3312 13.7859 19 12 19C10.2141 19 8.58439 18.3312 7.34769 17.2304M14.3333 10.25C14.3333 11.5387 13.2887 12.5833 12 12.5833C10.7113 12.5833 9.66667 11.5387 9.66667 10.25C9.66667 8.96134 10.7113 7.91667 12 7.91667C13.2887 7.91667 14.3333 8.96134 14.3333 10.25Z"
+                    stroke="black"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </svg>
               </Box>
               <Typography
                 variant="h6"
                 fontFamily='"SF Pro", sans-serif'
-                fontWeight={700}
-                fontSize="20px"
+                fontWeight={600}
+                fontSize="18px"
                 color="#fff"
               >
                 Account Information
@@ -277,7 +280,7 @@ export default function TransactionDetailsSkeleton() {
             </Stack>
 
             {/* User */}
-            <Box mb={3}>
+            <Box>
               <Typography
                 sx={{
                   color: "#666",
@@ -289,8 +292,17 @@ export default function TransactionDetailsSkeleton() {
               >
                 User
               </Typography>
-              <SkeletonBlock width="100%" height={32} />
+              <SkeletonBlock width="100%" height={44} borderRadius="40px" />
             </Box>
+
+            {/* Divider */}
+            <Box
+              sx={{
+                height: "1px",
+                backgroundColor: "rgba(255, 255, 255, 0.06)",
+                my: "32px",
+              }}
+            />
 
             {/* Total Value */}
             <Box mb={3}>
@@ -309,7 +321,7 @@ export default function TransactionDetailsSkeleton() {
             </Box>
 
             {/* Unrealized P&L */}
-            <Box mb={3}>
+            <Box>
               <Typography
                 sx={{
                   color: "#666",
@@ -322,22 +334,6 @@ export default function TransactionDetailsSkeleton() {
                 Unrealized P&L
               </Typography>
               <SkeletonBlock width="60%" height={28} />
-            </Box>
-
-            {/* Total P&L */}
-            <Box>
-              <Typography
-                sx={{
-                  color: "#666",
-                  fontSize: "14px",
-                  lineHeight: "18px",
-                  mb: 1,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                Total P&L
-              </Typography>
-              <SkeletonBlock width="65%" height={28} />
             </Box>
           </Box>
         </Grid>

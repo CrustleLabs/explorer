@@ -138,8 +138,18 @@ export default function TransactionTabs({
       <Grid container spacing={3} marginTop={2}>
         {/* Only show Sidebar and 2-column layout if it is a Dex transaction */}
         {transaction.type === "user_transaction" &&
-        (transaction as Types.UserTransaction).payload?.type ===
-          "dex_orderless_payload" ? (
+        ((transaction as Types.UserTransaction).payload?.type ===
+          "dex_orderless_payload" ||
+          ((transaction as Types.UserTransaction).payload?.type ===
+            "entry_function_payload" &&
+            ((
+              (transaction as Types.UserTransaction)
+                .payload as Types.TransactionPayload_EntryFunctionPayload
+            ).function?.endsWith("::aptos_coin::mint") ||
+              (
+                (transaction as Types.UserTransaction)
+                  .payload as Types.TransactionPayload_EntryFunctionPayload
+              ).function?.endsWith("::usdc::mint")))) ? (
           <>
             <Grid size={{xs: 12, md: 8}}>
               <TabPanel value={value} transaction={transaction} />

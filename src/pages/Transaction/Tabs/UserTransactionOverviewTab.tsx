@@ -581,6 +581,20 @@ function UnifiedLayout({
   // isOrder is true only when dex_type is "dex_payload"
   const isOrder = isDex && dexType === "dex_payload";
 
+  // Check if this is a Mint transaction (entry_function_payload with aptos_coin::mint)
+  const mintFunction =
+    transactionData.payload?.type === "entry_function_payload"
+      ? (
+          transactionData.payload as Types.TransactionPayload_EntryFunctionPayload
+        )?.function
+      : undefined;
+  const isMint =
+    (mintFunction?.endsWith("::aptos_coin::mint") ||
+      mintFunction?.endsWith("::usdc::mint")) ??
+    false;
+
+  const isUSDC = mintFunction?.endsWith("::usdc::mint") ?? false;
+
   const {data: perpetuals} = useGetPerpetuals();
 
   const [copyTooltipOpen, setCopyTooltipOpen] = React.useState(false);
@@ -617,7 +631,7 @@ function UnifiedLayout({
             >
               Status
             </Typography>
-            {isDex ? (
+            {isDex || isMint ? (
               <Box
                 sx={{
                   display: "inline-block",
@@ -746,12 +760,14 @@ function UnifiedLayout({
               color="#fff"
               fontSize="18px"
             >
-              {isDex
-                ? isOrder
-                  ? "Order"
-                  : "Transfer"
-                : transactionData.payload?.type?.split("::")?.pop() ||
-                  "Transaction"}
+              {isMint
+                ? "Mint"
+                : isDex
+                  ? isOrder
+                    ? "Order"
+                    : "Transfer"
+                  : transactionData.payload?.type?.split("::")?.pop() ||
+                    "Transaction"}
             </Typography>
           </Box>
         </Grid>
@@ -1136,8 +1152,262 @@ function UnifiedLayout({
         </Box>
       )}
 
-      {/* Standard Content for Non-DEX (wrapped in same styled box for consistency if requested later, but keeping as is for now) */}
-      {!isDex && (
+      {/* Transaction Details (Only for Mint) */}
+      {isMint &&
+        (() => {
+          const payload =
+            transactionData.payload as Types.TransactionPayload_EntryFunctionPayload;
+          const receiverAddress = (payload?.arguments?.[0] as string) || "";
+          const amount = (payload?.arguments?.[1] as string) || "0";
+
+          const decimals = isUSDC ? 6 : 8;
+          const symbol = isUSDC ? "USDC" : "APT";
+          const formattedAmount = (
+            Number(amount) / Math.pow(10, decimals)
+          ).toLocaleString();
+
+          return (
+            <Box
+              sx={{
+                backgroundColor: "#16141A",
+                border: "0.5px solid rgba(255, 255, 255, 0.06)",
+                borderRadius: "24px",
+                p: "20px",
+                mt: 4,
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
+                <Box
+                  sx={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    backgroundColor: "#8FC7FA", // Blue like Order
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    style={{
+                      width: 24,
+                      height: 24,
+                    }}
+                  >
+                    <path
+                      d="M5.5 9.47139C6.94445 7.66667 9.44809 5.5 12.0006 5.5C15.3459 5.5 18.1009 8.02742 18.4603 11.277M5.5 9.47139V6.22139M5.5 9.47139H8.75M5.54129 12.7249C5.90198 15.9732 8.65633 18.4991 12.0006 18.4991C14.5514 18.4991 17.0556 16.3333 18.5 14.5269M18.5 14.5269V17.7769M18.5 14.5269H15.25"
+                      stroke="black"
+                      strokeWidth="1.86667"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Box>
+                <Typography
+                  variant="h6"
+                  fontFamily='"SF Pro", sans-serif'
+                  fontWeight={700}
+                  fontSize="20px"
+                  color="#fff"
+                >
+                  Transaction Details
+                </Typography>
+              </Stack>
+
+              <Stack spacing={3}>
+                {/* Hash Row */}
+                <Box>
+                  <Typography sx={sectionLabelStyle}>Hash</Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      backgroundColor: "rgba(102, 75, 158, 0.5)",
+                      border: "1px solid rgba(182, 146, 244, 0.24)",
+                      borderRadius: "40px",
+                      padding: "10px 16px",
+                      width: "fit-content",
+                      maxWidth: "100%",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: "#fff",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        fontFamily: '"SF Pro", monospace',
+                        letterSpacing: "0.01em",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {transactionData.hash}
+                    </Typography>
+                    <Tooltip
+                      title="Copied"
+                      open={copyTooltipOpen}
+                      disableFocusListener
+                      disableHoverListener
+                      disableTouchListener
+                      placement="right"
+                    >
+                      <Box
+                        component="span"
+                        onClick={() => copyHash(transactionData.hash)}
+                        sx={{
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          flexShrink: 0,
+                          color: "rgba(255, 255, 255, 0.6)",
+                          "&:hover": {
+                            color: "#FFFFFF",
+                          },
+                        }}
+                      >
+                        <ContentCopyIcon sx={{fontSize: 16}} />
+                      </Box>
+                    </Tooltip>
+                  </Box>
+                </Box>
+
+                {/* Action Details Row - Mint Type */}
+                <Box>
+                  <Typography sx={sectionLabelStyle}>Action details</Typography>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    flexWrap="wrap"
+                    sx={{gap: "8px"}}
+                  >
+                    {/* Mint Label */}
+                    <Box
+                      sx={{
+                        backgroundColor: "#03A881",
+                        color: "#000",
+                        padding: "2px 10px",
+                        borderRadius: "100px",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Mint
+                    </Box>
+
+                    {/* Amount */}
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Typography
+                        sx={{
+                          color: "#fff",
+                          fontSize: "14px",
+                          fontFamily: '"SF Pro", sans-serif',
+                          lineHeight: "18px",
+                        }}
+                      >
+                        {formattedAmount} {symbol}
+                      </Typography>
+                    </Stack>
+
+                    {/* To */}
+                    <Typography
+                      sx={{
+                        color: "#999",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                      }}
+                    >
+                      To
+                    </Typography>
+
+                    {/* Receiver Address Pill */}
+                    <Box
+                      sx={{
+                        backgroundColor: "rgba(3, 168, 129, 0.12)",
+                        border: "1px solid rgba(3, 168, 129, 0.24)",
+                        borderRadius: "100px",
+                        padding: "4px 12px",
+                        fontSize: "14px",
+                        fontFamily: '"SF Pro", sans-serif',
+                        lineHeight: "18px",
+                        color: "#03A881",
+                      }}
+                    >
+                      {receiverAddress.slice(0, 6)}...
+                      {receiverAddress.slice(-4)}
+                    </Box>
+                  </Stack>
+                </Box>
+
+                {/* Timestamp Row */}
+                <Box>
+                  <Typography sx={sectionLabelStyle}>Timestamp</Typography>
+                  <Typography
+                    variant="body1"
+                    color="#fff"
+                    fontFamily='"SF Pro", sans-serif'
+                    fontSize="16px"
+                  >
+                    {moment(
+                      Math.floor(Number(transactionData.timestamp) / 1000),
+                    ).format("MM/DD/YYYY HH:mm:ss.SSS")}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {/* Transaction Metadata Accordion */}
+              <Accordion
+                sx={{
+                  mt: 4,
+                  backgroundColor: "transparent",
+                  backgroundImage: "none",
+                  boxShadow: "none",
+                  "&:before": {display: "none"},
+                  "& .MuiAccordionSummary-root": {
+                    padding: 0,
+                    minHeight: "48px",
+                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                  },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={
+                    <ExpandMoreIcon sx={{color: "rgba(255,255,255,0.4)"}} />
+                  }
+                >
+                  <Typography
+                    sx={{
+                      color: "#999",
+                      fontSize: "14px",
+                      fontFamily: '"SF Pro", sans-serif',
+                      lineHeight: "18px",
+                    }}
+                  >
+                    Transaction Data
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{padding: 0, pt: 2}}>
+                  <JsonViewCard
+                    data={transactionData.payload}
+                    collapsedByDefault
+                  />
+                </AccordionDetails>
+              </Accordion>
+            </Box>
+          );
+        })()}
+
+      {/* Standard Content for Non-DEX and Non-Mint */}
+      {!isDex && !isMint && (
         <ContentBox>
           <ContentRow
             title="Hash"
@@ -1214,8 +1484,8 @@ function UnifiedLayout({
         </ContentBox>
       )}
 
-      {/* Transaction Data (Collapsible) - Hide for DEX since we have the simplified version above */}
-      {!isDex && (
+      {/* Transaction Data (Collapsible) - Hide for DEX and Mint since we have the simplified version above */}
+      {!isDex && !isMint && (
         <Box mb={4} mt={4}>
           <Accordion
             sx={{
