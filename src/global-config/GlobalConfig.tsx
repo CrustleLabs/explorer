@@ -68,7 +68,10 @@ function deriveGlobalState({
     indexer_client: indexerClient,
     sdk_v2_client: new Aptos(
       new AptosConfig({
-        network: NetworkToNetworkName[network_name] ?? Network.CUSTOM,
+        // Use CUSTOM network type for non-official Aptos URLs to ensure SDK uses our fullnode URL
+        network: networks[network_name].includes("aptoslabs.com")
+          ? (NetworkToNetworkName[network_name] ?? Network.CUSTOM)
+          : Network.CUSTOM,
         fullnode: networks[network_name],
         indexer: indexerUri,
         clientConfig: {
