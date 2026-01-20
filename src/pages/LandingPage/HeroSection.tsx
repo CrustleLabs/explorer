@@ -14,9 +14,11 @@ const gradientTitleSx = {
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",
   fontWeight: 700,
-  fontSize: {xs: "32px", md: "48px"},
-  lineHeight: 1,
+  fontSize: {xs: "28px", sm: "36px", md: "48px"},
+  lineHeight: 1.1,
   fontFamily: '"SF Pro", system-ui, -apple-system, sans-serif',
+  overflowWrap: "break-word",
+  wordBreak: "break-word",
 };
 
 // Card container styling

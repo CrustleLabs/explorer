@@ -90,7 +90,7 @@ export default function Footer() {
         <Grid container spacing={4} justifyContent="space-between">
           {/* Left Column */}
           <Grid size={{xs: 12, md: 3}}>
-            <Stack spacing={4}>
+            <Stack spacing={4} alignItems={{xs: "center", md: "flex-start"}}>
               {/* Logo */}
               <Link to="/" color="inherit" underline="none">
                 <Box
@@ -101,7 +101,11 @@ export default function Footer() {
                 />
               </Link>
               {/* Social Icons */}
-              <Stack direction="row" spacing={2}>
+              <Stack
+                direction="row"
+                spacing={2}
+                justifyContent={{xs: "center", md: "flex-start"}}
+              >
                 {socialLinks.map((link) => (
                   <Link
                     key={link.title}
@@ -131,6 +135,7 @@ export default function Footer() {
                   fontSize: "12px",
                   lineHeight: "16px",
                   fontFamily: '"SF Pro", system-ui, sans-serif',
+                  textAlign: {xs: "center", md: "left"},
                 }}
               >
                 Copyright © {new Date().getFullYear()} settle.xyz
@@ -140,9 +145,17 @@ export default function Footer() {
 
           {/* Right Columns (Links) */}
           <Grid size={{xs: 12, md: 9}}>
-            <Grid container spacing={4} justifyContent={{md: "flex-end"}}>
+            <Grid
+              container
+              spacing={{xs: 3, sm: 4}}
+              justifyContent={{xs: "center", md: "flex-end"}}
+            >
               {footerSections.map((section) => (
-                <Grid size={{xs: 6, sm: 3}} key={section.title}>
+                <Grid
+                  size={{xs: 6, sm: 3, md: "auto"}}
+                  key={section.title}
+                  sx={{minWidth: {md: 120}}}
+                >
                   <Stack spacing={2}>
                     <Typography
                       sx={{

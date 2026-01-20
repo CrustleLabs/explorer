@@ -323,9 +323,10 @@ export function ValidatorsTable() {
       }}
     >
       <Stack
-        direction="row"
+        direction={{xs: "column", sm: "row"}}
         justifyContent="space-between"
-        alignItems="center"
+        alignItems={{xs: "stretch", sm: "center"}}
+        spacing={{xs: 2, sm: 0}}
         mb={3}
       >
         <Typography variant="h5" fontWeight={700} color="#fff">
@@ -340,7 +341,7 @@ export function ValidatorsTable() {
             border: "1px solid rgba(255, 255, 255, 0.16)",
             borderRadius: "100px",
             padding: "12px 16px",
-            width: "350px",
+            width: {xs: "100%", sm: "350px"},
             height: "48px",
           }}
         >
@@ -363,40 +364,42 @@ export function ValidatorsTable() {
         </Box>
       </Stack>
 
-      <Table>
-        <TableHead>
-          <TableRow sx={{verticalAlign: "bottom"}}>
-            {columns.map((column) => (
-              <ValidatorHeaderCell
-                key={column}
-                column={column}
-                direction={sortColumn === column ? sortDirection : undefined}
-                setDirection={setSortDirection}
-                setSortColumn={setSortColumn}
-              />
-            ))}
-          </TableRow>
-        </TableHead>
-        <GeneralTableBody>
-          {sortedValidators.map((validator: ValidatorData, i: number) => {
-            return (
-              <ValidatorRow key={i} validator={validator} columns={columns} />
-            );
-          })}
-          {sortedValidators.length === 0 && (
-            <TableRow>
-              <GeneralTableCell
-                colSpan={columns.length}
-                sx={{textAlign: "center", py: 4}}
-              >
-                <Typography color="text.secondary">
-                  No validators found
-                </Typography>
-              </GeneralTableCell>
+      <Box sx={{overflowX: "auto", width: "100%"}}>
+        <Table sx={{minWidth: 900}}>
+          <TableHead>
+            <TableRow sx={{verticalAlign: "bottom"}}>
+              {columns.map((column) => (
+                <ValidatorHeaderCell
+                  key={column}
+                  column={column}
+                  direction={sortColumn === column ? sortDirection : undefined}
+                  setDirection={setSortDirection}
+                  setSortColumn={setSortColumn}
+                />
+              ))}
             </TableRow>
-          )}
-        </GeneralTableBody>
-      </Table>
+          </TableHead>
+          <GeneralTableBody>
+            {sortedValidators.map((validator: ValidatorData, i: number) => {
+              return (
+                <ValidatorRow key={i} validator={validator} columns={columns} />
+              );
+            })}
+            {sortedValidators.length === 0 && (
+              <TableRow>
+                <GeneralTableCell
+                  colSpan={columns.length}
+                  sx={{textAlign: "center", py: 4}}
+                >
+                  <Typography color="text.secondary">
+                    No validators found
+                  </Typography>
+                </GeneralTableCell>
+              </TableRow>
+            )}
+          </GeneralTableBody>
+        </Table>
+      </Box>
     </Box>
   );
 }

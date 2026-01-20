@@ -13,13 +13,16 @@ export function useGetBlockByHeight({
 }) {
   const [state] = useGlobalState();
 
-  return useQuery<Block, ResponseError>({
+  const query = useQuery<Block, ResponseError>({
     queryKey: ["block", height, state.network_value],
-    queryFn: () =>
-      getBlockByHeight({height, withTransactions}, state.sdk_v2_client),
+    queryFn: () => {
+      return getBlockByHeight({height, withTransactions}, state.sdk_v2_client);
+    },
     refetchInterval: 1200000,
     enabled: !isNaN(height) && height >= 0, // Only fetch if height is a valid number
   });
+
+  return query;
 }
 
 export function useGetBlockByVersion({

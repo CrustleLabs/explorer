@@ -66,8 +66,8 @@ function deriveGlobalState({
       TOKEN: apiKey,
     }),
     indexer_client: indexerClient,
-    sdk_v2_client: new Aptos(
-      new AptosConfig({
+    sdk_v2_client: (() => {
+      const config = new AptosConfig({
         // Use CUSTOM network type for non-official Aptos URLs to ensure SDK uses our fullnode URL
         network: networks[network_name].includes("aptoslabs.com")
           ? (NetworkToNetworkName[network_name] ?? Network.CUSTOM)
@@ -78,8 +78,10 @@ function deriveGlobalState({
           HEADERS,
           API_KEY: apiKey,
         },
-      }),
-    ),
+      });
+
+      return new Aptos(config);
+    })(),
   };
 }
 

@@ -15,6 +15,14 @@ function getIsGraphqlClientSupportedFor(networkName: NetworkName): boolean {
 }
 
 export function getGraphqlURI(networkName: NetworkName): string | undefined {
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+
+  if (isLocalhost && (networkName === "devnet" || networkName === "local")) {
+    return "/v1/graphql";
+  }
+
   switch (networkName) {
     case "mainnet":
       return "https://api.mainnet.aptoslabs.com/v1/graphql";

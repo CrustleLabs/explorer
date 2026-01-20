@@ -177,9 +177,9 @@ export default function NetworkInfoSection() {
         <Grid size={{xs: 12, md: 3}}>
           <StatsCard
             label="TPS"
-            value={tps ? getFormattedTPS(tps) : "-"}
+            value={tps !== null ? getFormattedTPS(tps) : "-"}
             tooltip="Current rate of transactions per second on the network."
-            isLoading={!tps}
+            isLoading={tps === null}
           />
         </Grid>
         <Grid size={{xs: 12, md: 3}}>
