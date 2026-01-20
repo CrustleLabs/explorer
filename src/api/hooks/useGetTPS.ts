@@ -8,9 +8,9 @@ import {AnalyticsData, ANALYTICS_DATA_URL} from "./useGetAnalyticsData";
 export function useGetTPS() {
   const [state] = useGlobalState();
   const [blockHeight, setBlockHeight] = useState<number | undefined>();
-  const {tps} = useGetTPSByBlockHeight(blockHeight);
+  const {tps, isLoading: isTpsLoading} = useGetTPSByBlockHeight(blockHeight);
 
-  const {data: ledgerData} = useQuery({
+  const {data: ledgerData, isLoading: isLedgerLoading} = useQuery({
     queryKey: ["ledgerInfo", state.network_value],
     queryFn: () => getLedgerInfo(state.aptos_client),
     refetchInterval: 10000,
@@ -26,7 +26,9 @@ export function useGetTPS() {
     }
   }, [currentBlockHeight, state]);
 
-  return {tps};
+  const isLoading = isLedgerLoading || isTpsLoading;
+
+  return {tps, isLoading};
 }
 
 export function useGetPeakTPS() {

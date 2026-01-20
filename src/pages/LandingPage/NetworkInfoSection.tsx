@@ -119,7 +119,7 @@ export default function NetworkInfoSection() {
   const {totalVotingPower} = useGetValidatorSet();
 
   // TPS
-  const {tps} = useGetTPS();
+  const {tps, isLoading: tpsLoading} = useGetTPS();
 
   // Active Nodes (Validators)
   const {numberOfActiveValidators} = useGetValidatorSet();
@@ -179,7 +179,7 @@ export default function NetworkInfoSection() {
             label="TPS"
             value={tps !== null ? getFormattedTPS(tps) : "-"}
             tooltip="Current rate of transactions per second on the network."
-            isLoading={tps === null}
+            isLoading={tpsLoading && tps === null}
           />
         </Grid>
         <Grid size={{xs: 12, md: 3}}>

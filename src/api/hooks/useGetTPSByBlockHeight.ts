@@ -18,8 +18,11 @@ type BlockData = Block & {
   };
 };
 
-function calculateTps(startBlock: BlockData, endBlock: BlockData): number {
-  if (!startBlock || !endBlock) return 0;
+function calculateTps(
+  startBlock: BlockData,
+  endBlock: BlockData,
+): number | null {
+  if (!startBlock || !endBlock) return null;
 
   // Extract versions safely
   const getVersion = (block: BlockData): number => {
@@ -53,7 +56,7 @@ function calculateTps(startBlock: BlockData, endBlock: BlockData): number {
     !startTimeStr ||
     !endTimeStr
   ) {
-    return 0;
+    return null;
   }
 
   const startMoment = parseTimestamp(startTimeStr);
@@ -64,11 +67,11 @@ function calculateTps(startBlock: BlockData, endBlock: BlockData): number {
   const durationInSec = endUnix - startUnix;
 
   if (durationInSec <= 0) {
-    return 0;
+    return null;
   }
 
   const tps = (endVersion - startVersion) / durationInSec;
-  return isNaN(tps) ? 0 : Math.abs(tps);
+  return isNaN(tps) || tps <= 0 ? null : Math.abs(tps);
 }
 
 export function useGetTPSByBlockHeight(currentBlockHeight: number | undefined) {
@@ -80,22 +83,30 @@ export function useGetTPSByBlockHeight(currentBlockHeight: number | undefined) {
 
   const [tps, setTps] = useState<number | null>(null);
 
-  const {data: startBlock} = useGetBlockByHeight({
-    height:
-      blockHeight !== undefined ? Math.max(0, blockHeight - TPS_FREQUENCY) : 0,
+  const startBlockHeight =
+    blockHeight !== undefined ? Math.max(0, blockHeight - TPS_FREQUENCY) : 0;
+
+  const {data: startBlock, isLoading: isStartLoading} = useGetBlockByHeight({
+    height: startBlockHeight,
     withTransactions: false,
   });
-  const {data: endBlock} = useGetBlockByHeight({
+  const {data: endBlock, isLoading: isEndLoading} = useGetBlockByHeight({
     height: blockHeight ?? 0,
     withTransactions: false,
   });
 
+  const isLoading =
+    isStartLoading || isEndLoading || currentBlockHeight === undefined;
+
   useEffect(() => {
     if (startBlock && endBlock) {
       const result = calculateTps(startBlock, endBlock);
-      setTps(result);
+      // Only update if we got a valid TPS value
+      if (result !== null && result > 0) {
+        setTps(result);
+      }
     }
   }, [startBlock, endBlock, blockHeight]);
 
-  return {tps};
+  return {tps, isLoading};
 }
