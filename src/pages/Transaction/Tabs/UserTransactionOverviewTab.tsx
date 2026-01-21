@@ -644,25 +644,7 @@ function UnifiedLayout({
             >
               Status
             </Typography>
-            {isDex || isMint ? (
-              <Box
-                sx={{
-                  display: "inline-block",
-                  padding: "4px 12px",
-                  borderRadius: "36px",
-                  backgroundColor: "rgba(238, 145, 76, 0.12)",
-                  border: "0.5px solid rgba(238, 145, 76, 0.32)",
-                  color: "#E0834E",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  fontFamily: '"SF Pro", sans-serif',
-                }}
-              >
-                Filled
-              </Box>
-            ) : (
-              <TransactionStatus success={transactionData.success} />
-            )}
+            <TransactionStatus success={transactionData.success} />
           </Box>
         </Grid>
         <Grid size={{xs: 6, sm: 6, md: 3}} sx={{display: "flex"}}>
@@ -740,9 +722,20 @@ function UnifiedLayout({
               color="#fff"
               fontSize="18px"
             >
-              {moment(
-                Math.floor(Number(transactionData.timestamp) / 1000),
-              ).fromNow()}
+              {(() => {
+                const seconds = Math.floor(
+                  (Date.now() -
+                    Math.floor(Number(transactionData.timestamp) / 1000)) /
+                    1000,
+                );
+                if (seconds < 60) return `${seconds}s ago`;
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `${minutes}m ago`;
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours}h ago`;
+                const days = Math.floor(hours / 24);
+                return `${days}d ago`;
+              })()}
             </Typography>
           </Box>
         </Grid>

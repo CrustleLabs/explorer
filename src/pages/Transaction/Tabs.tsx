@@ -17,6 +17,7 @@ import BalanceChangeTab from "./Tabs/BalanceChangeTab";
 import {useParams} from "react-router-dom";
 import {useNavigate} from "../../routing";
 import ValidatorTransactionTab from "./Tabs/ValidatorTransactionTab";
+import OraclePriceOverviewTab from "./Tabs/OraclePriceOverviewTab";
 import {TransactionTypeName} from "../../components/TransactionType";
 import BlockEpilogueOverviewTab from "./Tabs/BlockEpilogueOverviewTab";
 import AllTransactionsSection from "./Tabs/Components/AllTransactionsSection";
@@ -61,6 +62,11 @@ function getTabValues(transaction: Types.Transaction): TabValue[] {
     case TransactionTypeName.Genesis:
       return ["genesisTxnOverview", "events", "payload", "changes"];
     case TransactionTypeName.Validator:
+      // Check for oracle_price validator transaction type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((transaction as any).validator_transaction_type === "oracle_price") {
+        return ["oraclePriceOverview"];
+      }
       return ["validatorTxnOverview", "events", "changes"];
     case TransactionTypeName.BlockEpilogue:
       return ["blockEpilogueOverview", "events", "changes"];
@@ -77,6 +83,7 @@ const TabComponents = Object.freeze({
   pendingTxnOverview: PendingTransactionOverviewTab,
   genesisTxnOverview: GenesisTransactionOverviewTab,
   validatorTxnOverview: ValidatorTransactionTab,
+  oraclePriceOverview: OraclePriceOverviewTab,
   balanceChange: BalanceChangeTab,
   events: EventsTab,
   payload: PayloadTab,
@@ -95,6 +102,7 @@ function getTabLabel(value: TabValue): string {
     case "pendingTxnOverview":
     case "genesisTxnOverview":
     case "validatorTxnOverview":
+    case "oraclePriceOverview":
     case "unknown":
       return "Overview";
     case "balanceChange":
