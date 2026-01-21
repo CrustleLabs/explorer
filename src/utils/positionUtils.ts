@@ -67,30 +67,18 @@ export function parsePositionsFromSubAccounts(
           userConfig.exponent,
         );
       } else {
-        // Priority 2: Default Tier (from market metadata)
+        // Priority 2: Max leverage from market leverage tiers
         if (market.leverageTiers && market.leverageTiers.length > 0) {
-          const notional = size * markPrice;
-
-          // Find applicable tier
-          const applicableTier = market.leverageTiers.find((t) => {
-            const min = parseFloat(t.minNotionalUsd);
-            const max = parseFloat(t.maxNotionalUsd);
-            // If max is 0, it usually means infinity/unbounded
-            return notional >= min && (max === 0 || notional < max);
-          });
-
-          if (applicableTier) {
-            effectiveLeverage = applicableTier.maxLeverage;
-          } else {
-            // Fallback: use the tier with highest max leverage? Or default to 20?
-            // Usually the first tier (0-something) has highest leverage.
-            const maxLev = Math.max(
-              ...market.leverageTiers.map((t) => t.maxLeverage),
-            );
-            effectiveLeverage = maxLev > 0 ? maxLev : 20;
-          }
+          // Use max leverage from all tiers (typically the first tier has highest leverage)
+          const maxLev = Math.max(
+            ...market.leverageTiers.map((t) => t.maxLeverage),
+          );
+          effectiveLeverage = maxLev > 0 ? maxLev : 20;
+        } else if (market.maxLeverage) {
+          // Priority 3: Direct maxLeverage field from market
+          effectiveLeverage = market.maxLeverage;
         } else {
-          // Priority 3: API Fallback (Hardcoded or best effort)
+          // Priority 4: Default fallback
           effectiveLeverage = 10;
         }
       }

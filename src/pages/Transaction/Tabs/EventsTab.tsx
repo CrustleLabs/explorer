@@ -25,6 +25,17 @@ function isTransferTransaction(transaction: Types.Transaction): boolean {
   );
 }
 
+// Helper to check if this is an Order type transaction (dex_payload)
+function isOrderTransaction(transaction: Types.Transaction): boolean {
+  if (!("payload" in transaction)) return false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = (transaction as any).payload;
+  return (
+    payload?.type === "dex_orderless_payload" &&
+    payload?.dex_type === "dex_payload"
+  );
+}
+
 // Helper to extract event name from type string
 // e.g., "0x0000...0001::fungible_asset::Withdraw" -> "Withdraw"
 function extractEventName(eventType: string): string {
@@ -41,21 +52,25 @@ function filterOutFeeEvents(events: Types.Event[]): Types.Event[] {
 
 export default function EventsTab({transaction}: EventsTabProps) {
   const isTransfer = isTransferTransaction(transaction);
+  const isOrder = isOrderTransaction(transaction);
 
-  // Only Fetch Dex Events for non-Transfer transactions
+  // Use native events for Transfer and Order transactions
+  const useNativeEvents = isTransfer || isOrder;
+
+  // Only Fetch Dex Events via GraphQL for transactions that don't use native events
   const {data: dexEventsData, loading} = useGetDexEvents(
-    isTransfer ? "" : transaction.hash, // Skip GraphQL call for Transfer
+    useNativeEvents ? "" : transaction.hash, // Skip GraphQL call for Transfer and Order
   );
   const dexEvents = dexEventsData?.dex_events || [];
 
-  // For Transfer transactions, use native events from the transaction
+  // For Transfer and Order transactions, use native events from the transaction
   const nativeEvents = React.useMemo(() => {
-    if (!isTransfer) return [];
+    if (!useNativeEvents) return [];
     if (!("events" in transaction)) return [];
     return filterOutFeeEvents((transaction as Types.UserTransaction).events);
-  }, [transaction, isTransfer]);
+  }, [transaction, useNativeEvents]);
 
-  if (!isTransfer && loading) {
+  if (!useNativeEvents && loading) {
     return (
       <Box sx={{display: "flex", justifyContent: "center", p: 4}}>
         <CircularProgress color="inherit" />
@@ -64,10 +79,10 @@ export default function EventsTab({transaction}: EventsTabProps) {
   }
 
   // No events to show
-  if (!isTransfer && dexEvents.length === 0) {
+  if (!useNativeEvents && dexEvents.length === 0) {
     return <EmptyTabContent />;
   }
-  if (isTransfer && nativeEvents.length === 0) {
+  if (useNativeEvents && nativeEvents.length === 0) {
     return <EmptyTabContent />;
   }
 
@@ -120,8 +135,8 @@ export default function EventsTab({transaction}: EventsTabProps) {
 
         {/* Content Stack */}
         <Stack spacing={2}>
-          {/* Display native events for Transfer transactions */}
-          {isTransfer &&
+          {/* Display native events for Transfer and Order transactions */}
+          {useNativeEvents &&
             nativeEvents.map((event: Types.Event, i: number) => (
               <Box
                 key={`native-event-${i}`}
@@ -197,8 +212,8 @@ export default function EventsTab({transaction}: EventsTabProps) {
               </Box>
             ))}
 
-          {/* Display Dex events for non-Transfer transactions */}
-          {!isTransfer &&
+          {/* Display Dex events for transactions that don't use native events */}
+          {!useNativeEvents &&
             dexEvents.map((event: DexEvent, i: number) => (
               <Box
                 key={`dex-event-${i}`}
