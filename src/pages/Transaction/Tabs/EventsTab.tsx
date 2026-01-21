@@ -206,7 +206,7 @@ export default function EventsTab({transaction}: EventsTabProps) {
                   <JsonViewCard
                     data={event.data}
                     hideBackground={true}
-                    collapsedByDefault={false}
+                    collapsedByDefault={true}
                   />
                 </Box>
               </Box>
@@ -281,7 +281,7 @@ export default function EventsTab({transaction}: EventsTabProps) {
                   <JsonViewCard
                     data={event.event_payload}
                     hideBackground={true}
-                    collapsedByDefault={false}
+                    collapsedByDefault={true}
                   />
                 </Box>
               </Box>
