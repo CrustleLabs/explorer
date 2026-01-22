@@ -7,23 +7,29 @@ export const devnetUrl =
   import.meta.env.APTOS_DEVNET_URL ||
   "https://api.devnet.staging.aptoslabs.com/v1";
 
+// Read from environment variables for Docker deployment
+const envRpcUrl =
+  import.meta.env.VITE_RPC_URL || "https://devnet-rpc.crustle.xyz/v1";
+const envIndexerUrl =
+  import.meta.env.VITE_INDEXER_URL || "https://devnet-indexer.crustle.xyz";
+
 export const networks: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/v1",
   testnet: "https://api.testnet.staging.aptoslabs.com/v1",
-  devnet: "https://devnet-current.crustle.xyz/node/v1/",
+  devnet: envRpcUrl,
   decibel: "https://api.netna.staging.aptoslabs.com/v1",
   shelbynet: "https://api.shelbynet.staging.shelby.xyz/v1",
-  local: "https://devnet-current.crustle.xyz/node/v1/",
+  local: envRpcUrl,
 };
 
 // Indexer API URLs for fetching market data and account positions
 export const indexerApiUrls: Record<string, string> = {
-  mainnet: "https://devnet-indexer.crustle.xyz",
-  testnet: "https://devnet-indexer.crustle.xyz",
-  devnet: "https://devnet-indexer.crustle.xyz",
-  decibel: "https://devnet-indexer.crustle.xyz",
-  shelbynet: "https://devnet-indexer.crustle.xyz",
-  local: "https://devnet-indexer.crustle.xyz",
+  mainnet: envIndexerUrl,
+  testnet: envIndexerUrl,
+  devnet: envIndexerUrl,
+  decibel: envIndexerUrl,
+  shelbynet: envIndexerUrl,
+  local: envIndexerUrl,
 };
 
 export function getIndexerApiUrl(network_name: NetworkName): string {

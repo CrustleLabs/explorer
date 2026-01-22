@@ -14,6 +14,11 @@ function getIsGraphqlClientSupportedFor(networkName: NetworkName): boolean {
   return typeof graphqlUri === "string" && graphqlUri.length > 0;
 }
 
+// Read from environment variable for Docker deployment
+const envGraphqlUrl =
+  import.meta.env.VITE_GRAPHQL_URL ||
+  "https://devnet-storage.crustle.xyz/v1/graphql";
+
 export function getGraphqlURI(networkName: NetworkName): string | undefined {
   const isLocalhost =
     window.location.hostname === "localhost" ||
@@ -29,13 +34,13 @@ export function getGraphqlURI(networkName: NetworkName): string | undefined {
     case "testnet":
       return "https://api.testnet.staging.aptoslabs.com/v1/graphql";
     case "devnet":
-      return "https://devnet-storage.crustle.xyz/v1/graphql"; // Use your custom indexer
+      return envGraphqlUrl;
     case "decibel":
       return "https://api.netna.staging.aptoslabs.com/v1/graphql";
     case "shelbynet":
       return "https://api.shelbynet.staging.shelby.xyz/v1/graphql";
     case "local":
-      return "https://devnet-storage.crustle.xyz/v1/graphql"; // Use your custom indexer
+      return envGraphqlUrl;
     default:
       return undefined;
   }

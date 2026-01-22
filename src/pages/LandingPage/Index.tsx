@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 
-import UserTransactionsPreview from "./UserTransactionsPreview";
+import RecentDataSection from "./RecentDataSection";
 import {usePageMetadata} from "../../components/hooks/usePageMetadata";
 import NetworkInfoSection from "./NetworkInfoSection";
 import HeroSection from "./HeroSection";
@@ -28,9 +28,9 @@ export default function LandingPage() {
         <NetworkInfoSection />
       </FadeIn>
 
-      {/* Transactions Preview */}
+      {/* Recent Blocks & Transactions */}
       <FadeIn delay={200} duration={400}>
-        <UserTransactionsPreview />
+        <RecentDataSection />
       </FadeIn>
 
       {/* Open Source / Code Promo */}

@@ -23,6 +23,7 @@ import {
   assertNever,
   isEvmCompatible,
   standardizeAddress,
+  tryStandardizeAddress,
   convertToEvmAddressIfNeeded,
 } from "../utils";
 import {useGetNameFromAddress} from "../api/hooks/useGetANS";
@@ -81,8 +82,8 @@ function AccountHashButtonInner({
   size = "small",
   isValidator,
 }: AccountHashButtonInnerProps) {
-  // Standardize address
-  const standardizedAddress = standardizeAddress(hash);
+  // Safely standardize address, fallback to original hash if invalid
+  const standardizedAddress = tryStandardizeAddress(hash) ?? hash;
   const evmAddress = isEvmCompatible(standardizedAddress)
     ? convertToEvmAddressIfNeeded(standardizedAddress)
     : null;

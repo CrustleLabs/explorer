@@ -13,6 +13,7 @@ import {ProvideColorMode} from "../../context";
 import {GraphqlClientProvider} from "../../api/hooks/useGraphqlClient";
 import {AptosWalletAdapterProvider} from "@aptos-labs/wallet-adapter-react";
 import {DexDataPreloader} from "../../api/hooks/DexDataPreloader";
+import polkaDots from "../../assets/polka_dots.png";
 
 import {hiddenNetworks} from "../../constants";
 
@@ -57,10 +58,26 @@ export default function ExplorerLayout({children}: LayoutProps) {
               component="main"
               sx={{
                 minHeight: "100vh",
-                backgroundColor: "transparent",
+                background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(155, 89, 182, 0.15) 0%, transparent 50%), #000`,
                 flexGrow: 1,
                 display: "flex",
                 flexDirection: "column",
+                position: "relative",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "1920px",
+                  height: "725px",
+                  backgroundImage: `url(${polkaDots})`,
+                  backgroundSize: "1920px 725px", // 2x图显示为一半尺寸
+                  backgroundPosition: "top center",
+                  backgroundRepeat: "no-repeat",
+                  pointerEvents: "none",
+                  zIndex: 0,
+                },
               }}
             >
               <Header />
