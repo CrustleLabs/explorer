@@ -63,6 +63,7 @@ export default function ExplorerLayout({children}: LayoutProps) {
                 display: "flex",
                 flexDirection: "column",
                 position: "relative",
+                overflowX: "hidden", // 防止波点背景导致水平滚动
                 "&::before": {
                   content: '""',
                   position: "absolute",
@@ -87,7 +88,7 @@ export default function ExplorerLayout({children}: LayoutProps) {
                   display: "flex",
                   flexDirection: "column",
                   flexGrow: 4,
-                  paddingTop: "2rem",
+                  paddingTop: "7rem", // 5rem header + 2rem spacing
                   width: {xs: "95%", md: "70%"},
                   "@media (min-width: 1920px)": {
                     width: "1200px",

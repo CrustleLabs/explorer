@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import {Typography} from "@mui/material";
-import {useState} from "react";
+import {useState, useRef, useCallback} from "react";
 import OpenSourceGraphic from "../../assets/svg/open_source_promo_graphic.svg?react";
 import HoverViewCodeCircle from "../../assets/svg/hover_view_code_circle.svg?react"; // Import new SVG
 
@@ -102,13 +102,22 @@ export default function OpenSourcePromo() {
   const [isCardHovered, setIsCardHovered] = useState(false);
   const [isTextHovered, setIsTextHovered] = useState(false);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Use RAF to throttle mouse move updates for better scroll performance
+  const rafRef = useRef<number | null>(null);
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Skip if we already have a pending RAF
+    if (rafRef.current !== null) return;
+
+    // Capture values before RAF callback - event object may be reused
     const rect = e.currentTarget.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    rafRef.current = requestAnimationFrame(() => {
+      setMousePosition({x, y});
+      rafRef.current = null;
     });
-  };
+  }, []);
 
   return (
     <Box

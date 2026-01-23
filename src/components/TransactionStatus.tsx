@@ -1,7 +1,5 @@
 import React from "react";
-import {Box, Stack, Typography} from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutlined";
+import {Box, Typography} from "@mui/material";
 import PriorityHighOutlinedIcon from "@mui/icons-material/PriorityHighOutlined";
 
 type TransactionStatusProps = {
@@ -10,61 +8,41 @@ type TransactionStatusProps = {
 
 export function TransactionStatus({success}: TransactionStatusProps) {
   return success ? (
-    <Stack
-      direction="row"
-      spacing={1}
-      paddingX={1.5}
-      paddingY={0.5}
-      alignItems="center"
-      justifyContent="center"
+    <Typography
       sx={{
-        backgroundColor: "rgba(3, 168, 129, 0.12)",
-        border: "1px solid rgba(3, 168, 129, 0.2)",
-        borderRadius: "100px", // Pill shape
-        width: "fit-content",
+        color: "#03A881",
+        fontSize: "14px",
+        fontWeight: 400,
+        fontStyle: "normal",
+        fontFamily: '"SF Pro", sans-serif',
+        lineHeight: "18px",
+        px: "6px",
+        py: "2px",
+        borderRadius: "37px",
+        border: "0.5px solid rgba(3, 168, 129, 0.3)",
+        backgroundColor: "rgba(3, 168, 129, 0.08)",
       }}
     >
-      <CheckCircleIcon sx={{color: "#03A881", fontSize: 16}} />
-      <Typography
-        variant="body2"
-        sx={{
-          color: "#03A881",
-          fontWeight: 600,
-          fontSize: "12px",
-          fontFamily: '"SF Pro", sans-serif',
-        }}
-      >
-        Success
-      </Typography>
-    </Stack>
+      Success
+    </Typography>
   ) : (
-    <Stack
-      direction="row"
-      spacing={1}
-      paddingX={1.5}
-      paddingY={0.5}
-      alignItems="center"
-      justifyContent="center"
+    <Typography
       sx={{
-        backgroundColor: "rgba(220, 41, 113, 0.12)",
-        border: "1px solid rgba(220, 41, 113, 0.2)",
-        borderRadius: "100px", // Pill shape
-        width: "fit-content",
+        color: "#DC2971",
+        fontSize: "14px",
+        fontStyle: "normal",
+        fontWeight: 400,
+        fontFamily: '"SF Pro", sans-serif',
+        lineHeight: "18px",
+        px: "6px",
+        py: "2px",
+        borderRadius: "37px",
+        border: "0.5px solid rgba(220, 41, 113, 0.3)",
+        backgroundColor: "rgba(220, 41, 113, 0.08)",
       }}
     >
-      <ErrorOutlinedIcon sx={{color: "#DC2971", fontSize: 16}} />
-      <Typography
-        variant="body2"
-        sx={{
-          color: "#DC2971",
-          fontWeight: 600,
-          fontSize: "12px",
-          fontFamily: '"SF Pro", sans-serif',
-        }}
-      >
-        Failed
-      </Typography>
-    </Stack>
+      Fail
+    </Typography>
   );
 }
 

@@ -2,7 +2,7 @@ import Button from "@mui/material/Button";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import {useNavigate} from "../routing";
 
-function BackButton(handleClick: () => void) {
+export function BackButton({handleClick}: {handleClick: () => void}) {
   return (
     <>
       <Button
@@ -28,9 +28,7 @@ export default function GoBack() {
   const navigate = useNavigate();
 
   if (window.history.state && window.history.state.idx > 0) {
-    return BackButton(() => {
-      navigate(-1);
-    });
+    return <BackButton handleClick={() => navigate(-1)} />;
   } else {
     return null;
   }

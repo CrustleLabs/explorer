@@ -12,6 +12,8 @@ import {useGetBlockByVersion} from "../../api/hooks/useGetBlock";
 import TransactionDetailsSkeleton from "./Tabs/Components/TransactionDetailsSkeleton";
 import FadeIn from "../../components/FadeIn";
 
+import PageHeader from "../layout/PageHeader";
+
 export default function TransactionPage() {
   const [state] = useGlobalState();
   const {txnHashOrVersion: txnParam} = useParams();
@@ -32,6 +34,7 @@ export default function TransactionPage() {
   if (isLoading) {
     return (
       <Grid container>
+        <PageHeader />
         <Grid size={{xs: 12}}>
           <Stack direction="column" spacing={4} marginTop={2}>
             <TransactionTitle />
@@ -72,6 +75,7 @@ export default function TransactionPage() {
   return (
     <FadeIn duration={400}>
       <Grid container>
+        <PageHeader />
         <Grid size={{xs: 12}}>
           <Stack direction="column" spacing={4} marginTop={2}>
             <TransactionTitle transaction={transactionWithBlock} />

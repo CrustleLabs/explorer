@@ -228,6 +228,7 @@ export default function ScrollingCodeBackground() {
       <Box
         sx={{
           animation: `${scrollAnimation} 60s linear infinite`,
+          willChange: "transform", // Hint browser for GPU acceleration
           fontFamily: '"JetBrains Mono", "Fira Code", monospace',
           fontSize: "10px", // Small code
           lineHeight: "1.2",

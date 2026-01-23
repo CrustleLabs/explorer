@@ -1,16 +1,14 @@
-import {useParams} from "react-router-dom";
-import {Stack, Grid, Alert, Box} from "@mui/material";
+import {useNavigate, useParams} from "react-router-dom";
+import {Stack, Grid, Alert} from "@mui/material";
 import React from "react";
 import BlockTitle from "./Title";
-import BlockOverviewCard from "./Components/BlockOverviewCard";
-import BlockTransactionsCard from "./Components/BlockTransactionsCard";
+import BlockTabs from "./Tabs";
 import {useGetBlockByHeight} from "../../api/hooks/useGetBlock";
 import Error from "./Error";
-import PageHeader from "../layout/PageHeader";
-
-import BlockPageSkeleton from "./Components/BlockPageSkeleton";
+import {BackButton} from "../../components/GoBack";
 
 export default function BlockPage() {
+  const navigate = useNavigate();
   const {height} = useParams();
   const actualHeight = parseInt(height ?? "");
 
@@ -18,20 +16,11 @@ export default function BlockPage() {
     height: actualHeight,
   });
 
-  if (isLoading) {
-    return (
-      <Box>
-        <PageHeader />
-        <BlockPageSkeleton />
-      </Box>
-    );
-  }
-
   if (error) {
     return <Error error={error} height={height ?? ""} />;
   }
 
-  if (!data) {
+  if (!isLoading && !data) {
     return (
       <Alert severity="error">
         Got an empty response fetching block with height {height}
@@ -42,13 +31,12 @@ export default function BlockPage() {
   }
 
   return (
-    <Grid container spacing={1}>
-      <PageHeader />
+    <Grid container>
+      <BackButton handleClick={() => navigate(-1)} />
       <Grid size={{xs: 12}}>
         <Stack direction="column" spacing={4} marginTop={2}>
           <BlockTitle height={actualHeight} />
-          <BlockOverviewCard data={data} />
-          <BlockTransactionsCard data={data} />
+          <BlockTabs data={data} isLoading={isLoading} />
         </Stack>
       </Grid>
     </Grid>

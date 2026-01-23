@@ -33,7 +33,11 @@ const IdenticonImg: React.FunctionComponent<IdenticonImgProps> = ({
 
   // Return an img element with the data URL as the src
   return (
-    <img src={iconDataURL} alt="Identicon" style={{borderRadius: "50%"}} />
+    <img
+      src={iconDataURL}
+      alt="Identicon"
+      style={{borderRadius: "50%", width: "100%", height: "100%"}}
+    />
   );
 };
 

@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function NavButton({
   to,
   title,
@@ -52,6 +53,7 @@ export default function Nav() {
         gap: 4, // 32px
       }}
     >
+      {/* Temporarily hidden
       <NavButton
         to="/transactions"
         title="View All Transactions"
@@ -63,6 +65,7 @@ export default function Nav() {
         label="Validators"
       />
       <NavButton to="/blocks" title="View Latest Blocks" label="Blocks" />
+      */}
     </Box>
   );
 }

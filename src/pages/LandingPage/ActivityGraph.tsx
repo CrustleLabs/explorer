@@ -68,6 +68,10 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
   const [gridDimensions, setGridDimensions] = useState({rows: 0, cols: 0});
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
 
+  // Single shared tooltip state - performance optimization
+  const [hoveredItem, setHoveredItem] = useState<GridItem | null>(null);
+  const [tooltipAnchor, setTooltipAnchor] = useState<HTMLElement | null>(null);
+
   // Use ref to always have current dimensions in async callbacks
   const dimensionsRef = useRef({rows: 0, cols: 0});
 
@@ -342,85 +346,98 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
             {gridItems
               .slice(0, gridDimensions.rows * gridDimensions.cols)
               .map((item) => (
-                <CustomTooltip
+                <Box
                   key={item.id}
-                  title={
-                    item.blockHeight ? (
-                      <Box sx={{minWidth: "180px"}}>
-                        {/* Header: Block Height & Time */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 2,
-                          }}
-                        >
-                          <Typography
-                            fontWeight="700"
-                            fontSize="14px"
-                            color="#fff"
-                          >
-                            Block {item.blockHeight}
-                          </Typography>
-                          <Typography fontSize="12px" color="#888">
-                            {moment(parseInt(item.timestamp!) / 1000).format(
-                              "HH:mm:ss",
-                            )}
-                          </Typography>
-                        </Box>
-
-                        {/* Txs */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            mb: 1,
-                          }}
-                        >
-                          <Typography fontSize="12px" color="#888">
-                            Txs
-                          </Typography>
-                          <Typography fontSize="12px" color="#fff">
-                            {item.txCount}
-                          </Typography>
-                        </Box>
-
-                        {/* Hash (Proposer removed) */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Typography fontSize="12px" color="#888">
-                            Hash
-                          </Typography>
-                          <Typography fontSize="12px" color="#888">
-                            {truncateHash(item.hash)}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ) : (
-                      ""
-                    )
-                  }
-                  placement="top"
-                >
-                  <Box
-                    sx={{
-                      width: "16px",
-                      height: "16px",
-                      borderRadius: "50%",
-                      backgroundColor: getActivityColor(item.txCount),
-                      transition: "background-color 0.5s ease",
-                      cursor: item.blockHeight ? "pointer" : "default",
-                    }}
-                  />
-                </CustomTooltip>
+                  onMouseEnter={(e) => {
+                    if (item.blockHeight) {
+                      setHoveredItem(item);
+                      setTooltipAnchor(e.currentTarget);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredItem(null);
+                    setTooltipAnchor(null);
+                  }}
+                  sx={{
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    backgroundColor: getActivityColor(item.txCount),
+                    transition: "background-color 0.5s ease",
+                    cursor: item.blockHeight ? "pointer" : "default",
+                  }}
+                />
               ))}
           </Box>
         )}
+        {/* Single shared tooltip - performance optimization */}
+        <CustomTooltip
+          open={hoveredItem !== null && tooltipAnchor !== null}
+          title={
+            hoveredItem?.blockHeight ? (
+              <Box sx={{minWidth: "180px"}}>
+                {/* Header: Block Height & Time */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
+                  <Typography fontWeight="700" fontSize="14px" color="#fff">
+                    Block {hoveredItem.blockHeight}
+                  </Typography>
+                  <Typography fontSize="12px" color="#888">
+                    {moment(parseInt(hoveredItem.timestamp!) / 1000).format(
+                      "HH:mm:ss",
+                    )}
+                  </Typography>
+                </Box>
+
+                {/* Txs */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1,
+                  }}
+                >
+                  <Typography fontSize="12px" color="#888">
+                    Txs
+                  </Typography>
+                  <Typography fontSize="12px" color="#fff">
+                    {hoveredItem.txCount}
+                  </Typography>
+                </Box>
+
+                {/* Hash */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography fontSize="12px" color="#888">
+                    Hash
+                  </Typography>
+                  <Typography fontSize="12px" color="#888">
+                    {truncateHash(hoveredItem.hash)}
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              ""
+            )
+          }
+          placement="top"
+          PopperProps={{
+            anchorEl: tooltipAnchor,
+          }}
+        >
+          {/* Invisible anchor element for the tooltip */}
+          <Box sx={{position: "absolute", visibility: "hidden"}} />
+        </CustomTooltip>
       </Box>
     </Box>
   );

@@ -83,11 +83,14 @@ export default function Header() {
       ></Box>
       <MuiAppBar
         sx={{
-          position: "sticky",
+          position: "fixed",
           top: "0",
+          left: "0",
+          right: "0",
           borderRadius: "0",
-          backdropFilter: "blur(10px)",
-          background: "transparent",
+          // backdropFilter: "blur(10px)", // 临时禁用，测试是否影响滚动性能
+          background: "rgba(0, 0, 0, 0.85)", // 用实色背景替代模糊
+          zIndex: 1100, // 确保在其他内容之上
           ...(!inView &&
             isDark && {
               background: "rgba(18,22,21, 0.85)",

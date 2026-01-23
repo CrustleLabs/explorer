@@ -304,7 +304,7 @@ function OrderInfoDisplay({
   showCount?: boolean;
   orderCount?: number;
 }) {
-  const perpetual = perpetuals?.[order.symbol_id];
+  const perpetual = perpetuals?.find((p) => p.perpetual_id === order.symbol_id);
   if (!perpetual) return <Typography sx={{color: grey[450]}}>--</Typography>;
 
   const sideInfo = getSideLabel(order.side as Side, order.reduce_only);
