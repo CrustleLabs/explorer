@@ -16,7 +16,7 @@ const GET_ACCOUNT_ORDERS = gql`
       price
       status
       place_at
-      created_transaction_version
+      created_transaction
     }
   }
 `;
@@ -30,7 +30,7 @@ export type Order = {
   price: number;
   status: number;
   place_at: string;
-  created_transaction_version?: string;
+  created_transaction?: string;
 };
 
 export function useGetAccountOrders(address: string) {

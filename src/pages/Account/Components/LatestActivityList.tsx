@@ -209,7 +209,7 @@ export default function LatestActivityList({address}: {address?: string}) {
       statusColor,
       statusBg,
       rawStatus: order.status,
-      txnVersion: order.created_transaction_version, // Pass transaction ID
+      txnVersion: order.created_transaction,
     };
   });
 
