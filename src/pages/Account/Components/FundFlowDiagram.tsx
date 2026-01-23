@@ -55,18 +55,18 @@ export default function FundFlowDiagram({address}: FundFlowDiagramProps) {
         let sourceLabel = "External Address";
         let targetLabel = "External Address";
 
-        if (txn.sender_sub_number === "0") sourceLabel = "Main Account";
+        if (txn.sender_sub_number === "0") sourceLabel = "Capital Account";
         else sourceLabel = `SubAccount ${txn.sender_sub_number}`;
 
-        if (txn.recipient_sub_number === "0") targetLabel = "Main Account";
+        if (txn.recipient_sub_number === "0") targetLabel = "Capital Account";
         else targetLabel = `SubAccount ${txn.recipient_sub_number}`;
 
         // Override labels if matching current address props (though sub_number 0 usually implies it)
         if (txn.sender_address.toLowerCase() === address?.toLowerCase()) {
-          sourceLabel = "Main Account (You)";
+          sourceLabel = "Capital Account";
         }
         if (txn.recipient_address.toLowerCase() === address?.toLowerCase()) {
-          targetLabel = "Main Account (You)";
+          targetLabel = "Capital Account";
         }
 
         flowMap.set(key, {
@@ -98,6 +98,20 @@ export default function FundFlowDiagram({address}: FundFlowDiagramProps) {
 
   // Calculate totals for header
   const totalTransfers = flows.reduce((sum, f) => sum + f.count, 0);
+
+  // Common card style
+  const cardBaseSx = {
+    backgroundColor: "#1F1C25",
+    borderRadius: "24px",
+    border: "1px solid rgba(255,255,255,0.06)",
+    p: 3,
+    minWidth: "220px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 1.5,
+    boxShadow: "0px 4px 24px rgba(0,0,0,0.2)",
+  };
 
   return (
     <Box>
@@ -133,79 +147,22 @@ export default function FundFlowDiagram({address}: FundFlowDiagramProps) {
           const isLast = index === flows.length - 1;
 
           return (
-            <Box
+            <Stack
               key={index}
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
               sx={{
-                position: "relative",
                 width: "100%",
-                height: "180px", // Increased height for the curve
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                height: "auto",
+                minHeight: "180px",
                 px: 2,
                 mb: isLast ? 0 : 2,
+                position: "relative", // For any background flair if needed, but not for structural layout
               }}
             >
-              {/* SVG Overlay for Lines */}
-              <Box
-                component="svg"
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  pointerEvents: "none",
-                  zIndex: 0,
-                }}
-              >
-                <defs>
-                  <marker
-                    id={`arrow-${index}`}
-                    markerWidth="10"
-                    markerHeight="7"
-                    refX="9"
-                    refY="3.5"
-                    orient="auto"
-                  >
-                    <polygon points="0 0, 10 3.5, 0 7" fill={connectionColor} />
-                  </marker>
-                </defs>
-                {/* 
-                    Curve Logic:
-                    Start: Right edge of Source Node approx (300, 50)
-                    End: Left edge of Target Node approx (End - 300, 130)
-                    Using percentages for responsiveness
-                 */}
-                <path
-                  d="M 280 40 C 400 40, 400 140, 520 140"
-                  fill="none"
-                  stroke={connectionColor}
-                  strokeWidth="1.5"
-                  strokeDasharray="5 5"
-                  markerEnd={`url(#arrow-${index})`}
-                  vectorEffect="non-scaling-stroke"
-                />
-              </Box>
-
-              {/* Source Node Card (Top Left) */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 10,
-                  left: "5%",
-                  zIndex: 1,
-                  backgroundColor: "#1F1C25",
-                  borderRadius: "16px",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  p: 3,
-                  minWidth: "220px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
+              {/* Source Node Card (Left) */}
+              <Box sx={cardBaseSx}>
                 <Stack
                   direction="row"
                   alignItems="center"
@@ -242,7 +199,7 @@ export default function FundFlowDiagram({address}: FundFlowDiagramProps) {
                       fontFamily: '"SF Pro"',
                     }}
                   >
-                    Transfer
+                    {!flow.isInflow ? "Capital Account" : "Sender"}
                   </Typography>
                 </Stack>
 
@@ -281,23 +238,59 @@ export default function FundFlowDiagram({address}: FundFlowDiagramProps) {
                 </Typography>
               </Box>
 
-              {/* Target Node Card (Bottom Right) */}
+              {/* Connection Line (Middle - Flex Grow) */}
               <Box
                 sx={{
-                  position: "absolute",
-                  bottom: 10,
-                  right: "10%",
-                  zIndex: 1,
-                  backgroundColor: "#1F1C25",
-                  borderRadius: "16px",
-                  border: `1px solid ${color}`,
-                  boxShadow: `0px 0px 0px 1px ${color}3D`,
-                  p: 3,
-                  minWidth: "180px",
+                  flex: 1,
+                  mx: 2,
                   display: "flex",
-                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 1,
+                  justifyContent: "center",
+                  height: "100%",
+                }}
+              >
+                <Box
+                  component="svg"
+                  width="100%"
+                  height="40px"
+                  viewBox="0 0 200 40"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <marker
+                      id={`arrow-${index}`}
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 10 3.5, 0 7"
+                        fill={connectionColor}
+                      />
+                    </marker>
+                  </defs>
+                  {/* Dynamic dashed line spanning the width */}
+                  <path
+                    d="M 0 20 Q 100 20, 190 20"
+                    fill="none"
+                    stroke={connectionColor}
+                    strokeWidth="1.5"
+                    strokeDasharray="5 5"
+                    markerEnd={`url(#arrow-${index})`}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </Box>
+              </Box>
+
+              {/* Target Node Card (Right) */}
+              <Box
+                sx={{
+                  ...cardBaseSx,
+                  // Target gets the colored border emphasis
+                  border: `1px solid ${color}`,
+                  boxShadow: `0px 0px 0px 1px ${color}3D, 0px 4px 24px rgba(0,0,0,0.2)`,
                 }}
               >
                 <Box
@@ -334,7 +327,7 @@ export default function FundFlowDiagram({address}: FundFlowDiagramProps) {
                   </Typography>
                 </Box>
               </Box>
-            </Box>
+            </Stack>
           );
         })}
       </Stack>

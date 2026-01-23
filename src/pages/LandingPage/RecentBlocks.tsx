@@ -15,6 +15,8 @@ const cardSx = {
   backgroundColor: "rgba(31, 28, 37, 0.6)",
   borderRadius: "24px",
   border: "0.5px solid rgba(255,255,255,0.12)",
+  backdropFilter: "blur(6px)",
+  WebkitBackdropFilter: "blur(6px)",
   py: 3,
   px: 0,
   display: "flex",

@@ -16,11 +16,12 @@ export function TransactionStatus({success}: TransactionStatusProps) {
         fontStyle: "normal",
         fontFamily: '"SF Pro", sans-serif',
         lineHeight: "18px",
-        px: "6px",
+        px: "8px", // Increased padding slightly for better look
         py: "2px",
         borderRadius: "37px",
         border: "0.5px solid rgba(3, 168, 129, 0.3)",
         backgroundColor: "rgba(3, 168, 129, 0.08)",
+        width: "fit-content",
       }}
     >
       Success
@@ -34,11 +35,12 @@ export function TransactionStatus({success}: TransactionStatusProps) {
         fontWeight: 400,
         fontFamily: '"SF Pro", sans-serif',
         lineHeight: "18px",
-        px: "6px",
+        px: "8px",
         py: "2px",
         borderRadius: "37px",
         border: "0.5px solid rgba(220, 41, 113, 0.3)",
         backgroundColor: "rgba(220, 41, 113, 0.08)",
+        width: "fit-content",
       }}
     >
       Fail

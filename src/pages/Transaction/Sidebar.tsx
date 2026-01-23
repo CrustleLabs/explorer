@@ -303,36 +303,55 @@ export default function TransactionSidebar({
                 width: "fit-content",
               }}
             >
-              {/* Address-based random avatar */}
-              {effectiveUser && (
-                <Box
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    overflow: "hidden",
-                    flexShrink: 0,
-                  }}
-                >
-                  <IdenticonImg address={effectiveUser} />
-                </Box>
-              )}
-              <Typography
-                sx={{
-                  color: "#fff",
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  fontFamily: '"SF Pro", sans-serif',
-                  letterSpacing: "0.02em",
+              {/* Clickable Area: Avatar + Address */}
+              <Link
+                to={`/account/${effectiveUser}?network=${state.network_name}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  gap: "12px", // Matches previous spacing={1.5} (8px * 1.5 = 12px)
                   overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
                 }}
               >
-                {effectiveUser
-                  ? `${effectiveUser.slice(0, 10)}...${effectiveUser.slice(-8)}`
-                  : "-"}
-              </Typography>
+                {/* Address-based random avatar */}
+                {effectiveUser && (
+                  <Box
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <IdenticonImg address={effectiveUser} />
+                  </Box>
+                )}
+                <Typography
+                  sx={{
+                    color: "#fff",
+                    fontSize: "16px",
+                    fontWeight: 500,
+                    fontFamily: '"SF Pro", sans-serif',
+                    letterSpacing: "0.02em",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    "&:hover": {
+                      opacity: 0.8,
+                    },
+                  }}
+                >
+                  {effectiveUser
+                    ? `${effectiveUser.slice(0, 10)}...${effectiveUser.slice(
+                        -8,
+                      )}`
+                    : "-"}
+                </Typography>
+              </Link>
+
+              {/* Copy Icon */}
               <Tooltip
                 title="Copied"
                 open={tooltipOpen}

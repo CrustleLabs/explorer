@@ -23,9 +23,11 @@ const gradientTitleSx = {
 
 // Card container styling
 const heroCardSx = {
-  backgroundColor: "#16141A",
+  backgroundColor: "rgba(31, 28, 37, 0.60)",
   borderRadius: "24px",
-  border: "0.5px solid rgba(255,255,255,0.06)",
+  border: "0.5px solid rgba(255,255,255,0.12)",
+  backdropFilter: "blur(6px)",
+  WebkitBackdropFilter: "blur(6px)",
   p: 4,
   display: "flex",
   flexDirection: "column",

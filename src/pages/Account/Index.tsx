@@ -10,12 +10,11 @@ import Error from "./Error";
 import {AptosNamesBanner} from "./Components/AptosNamesBanner";
 import {PetraVaultBanner} from "./Components/PetraVaultBanner";
 import {useGlobalState} from "../../global-config/GlobalConfig";
-import {Network, Types} from "aptos";
-import {useGetAccountResources} from "../../api/hooks/useGetAccountResources";
+import {Network} from "aptos";
+import {useGetAccountType} from "../../api/hooks/useGetAccountType";
 import {AccountAddress} from "@aptos-labs/ts-sdk";
 import {useNavigate} from "../../routing";
 import {ResponseError, ResponseErrorType} from "../../api/client";
-import {objectCoreResource} from "../../constants";
 import {useGetAddressFromName} from "../../api/hooks/useGetANS";
 
 type AccountPageProps = {
@@ -74,21 +73,15 @@ export default function AccountPage({
   }
 
   const {
-    data: resourceData,
+    data: accountTypeData,
     error: resourceError,
     isLoading: resourcesIsLoading,
-  } = useGetAccountResources(address, {retry: false});
+  } = useGetAccountType(address);
 
-  const accountData = resourceData?.find(
-    (r) => r.type === "0x1::account::Account",
-  )?.data as Types.AccountData | undefined;
-  const objectData = resourceData?.find((r) => r.type === objectCoreResource);
-  const multisigData = resourceData?.find(
-    (r) => r.type === "0x1::multisig_account::MultisigAccount",
-  );
-  const isAccount = !!accountData;
-  const isObject = !!objectData;
-  const isMultisig = !!multisigData;
+  const isAccount = accountTypeData?.isAccount ?? false;
+  const isObject = accountTypeData?.isObject ?? false;
+  const isMultisig = accountTypeData?.isMultisig ?? false;
+  const accountData = accountTypeData?.accountData;
 
   const isLoading = resourcesIsLoading || (!!isAptName && ansQuery.isLoading);
   let error: ResponseError | null = null;
@@ -128,7 +121,6 @@ export default function AccountPage({
     isObject,
     isLoading,
     accountData,
-    resourceData,
     navigate,
     isAccount,
     isAptName,

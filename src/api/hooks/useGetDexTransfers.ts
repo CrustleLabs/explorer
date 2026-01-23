@@ -46,11 +46,14 @@ const GET_DEX_TRANSFERS = gql`
 `;
 
 export function useGetDexTransfers(address: string | undefined) {
+  // Convert to EVM address (42 chars) for dex_transfers
+  const evmAddress = address ? `0x${address.slice(-40)}` : "";
+
   const {data, loading, error} = useGraphqlQuery<{
     dex_transfers: DexTransfer[];
   }>(GET_DEX_TRANSFERS, {
-    variables: {address},
-    skip: !address,
+    variables: {address: evmAddress},
+    skip: !evmAddress,
   });
 
   return {data, isLoading: loading, error};
