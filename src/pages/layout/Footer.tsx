@@ -1,4 +1,5 @@
-import React from "react";
+import {useGlobalState} from "../../global-config/GlobalConfig";
+import {useEffect, useState} from "react";
 import {Box, Stack, Typography, Link as MuiLink} from "@mui/material";
 
 const footerLinks = [
@@ -9,6 +10,29 @@ const footerLinks = [
 ];
 
 export default function Footer() {
+  const [state] = useGlobalState();
+  const [connectionStatus, setConnectionStatus] = useState<"stable" | "error">(
+    "stable",
+  );
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        await state.aptos_client.getLedgerInfo();
+        setConnectionStatus("stable");
+      } catch {
+        setConnectionStatus("error");
+      }
+    };
+
+    // Check immediately
+    checkConnection();
+
+    // Poll every 30 seconds
+    const interval = setInterval(checkConnection, 30000);
+    return () => clearInterval(interval);
+  }, [state.aptos_client]);
+
   return (
     <Box
       sx={{
@@ -40,14 +64,17 @@ export default function Footer() {
           pointerEvents: "auto",
         }}
       >
-        {/* Stable Connection Badge */}
+        {/* Connection Badge */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "4px",
-            backgroundColor: "rgba(205, 185, 249, 0.12)",
+            backgroundColor:
+              connectionStatus === "stable"
+                ? "rgba(205, 185, 249, 0.12)"
+                : "rgba(255, 97, 97, 0.12)", // Red bg for error
             borderRadius: "38px",
             padding: "2px 6px",
           }}
@@ -57,15 +84,18 @@ export default function Footer() {
               width: "4px",
               height: "4px",
               borderRadius: "50%",
-              backgroundColor: "#7D6097",
+              backgroundColor:
+                connectionStatus === "stable" ? "#7D6097" : "#FF6161",
               backgroundImage:
-                "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%224%22 height=%224%22 viewBox=%220 0 4 4%22 fill=%22none%22%3E%3Ccircle cx=%222%22 cy=%222%22 r=%222%22 fill=%22%23CDB9F9%22/%3E%3C/svg%3E')",
+                connectionStatus === "stable"
+                  ? "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%224%22 height=%224%22 viewBox=%220 0 4 4%22 fill=%22none%22%3E%3Ccircle cx=%222%22 cy=%222%22 r=%222%22 fill=%22%23CDB9F9%22/%3E%3C/svg%3E')"
+                  : "none",
               backgroundSize: "cover",
             }}
           />
           <Typography
             sx={{
-              color: "#CDB9F9",
+              color: connectionStatus === "stable" ? "#CDB9F9" : "#FF6161",
               fontFamily: '"SF Pro", sans-serif',
               fontSize: "12px",
               fontWeight: 400,
@@ -73,7 +103,9 @@ export default function Footer() {
               letterSpacing: 0,
             }}
           >
-            Stable Connection
+            {connectionStatus === "stable"
+              ? "Stable Connection"
+              : "Connection Error"}
           </Typography>
         </Box>
 
