@@ -1,219 +1,108 @@
 import React from "react";
-import {Box, Container, Grid, Stack, Typography, useTheme} from "@mui/material";
-import GithubLogo from "../../assets/github.svg?react";
-import DiscordLogo from "../../assets/discord.svg?react";
-import TwitterLogo from "../../assets/twitter.svg?react";
-import MediumLogo from "../../assets/medium.svg?react";
-import LinkedInLogo from "../../assets/linkedin.svg?react";
-import {grey} from "../../themes/colors/aptosColorPalette";
-import SvgIcon from "@mui/material/SvgIcon";
-import Logo from "../../assets/logo-dark.svg";
-import {Link} from "../../routing";
-import FooterDecoration from "./FooterDecoration";
+import {Box, Stack, Typography, Link as MuiLink} from "@mui/material";
 
-const socialLinks = [
-  {title: "Git", url: "https://github.com/CrustleLabs", icon: GithubLogo},
-  {
-    title: "Discord",
-    url: "",
-    icon: DiscordLogo,
-  },
-  {title: "Twitter", url: "", icon: TwitterLogo},
-  {title: "Medium", url: "", icon: MediumLogo},
-  {
-    title: "LinkedIn",
-    url: "",
-    icon: LinkedInLogo,
-  },
-];
-
-const footerSections = [
-  {
-    title: "Company",
-    links: [
-      {label: "About Us", href: "#"},
-      {label: "Careers", href: "#"},
-      {label: "Brand Kit", href: "#"},
-      {label: "Blog", href: "#"},
-    ],
-  },
-  {
-    title: "Product",
-    links: [
-      {label: "Download", href: "#"},
-      {label: "Trade", href: "#"},
-      {label: "Documentation", href: "#"},
-      {label: "App Feedback", href: "#"},
-    ],
-  },
-  {
-    title: "Support",
-    links: [
-      {label: "Customer Support", href: "#"},
-      {label: "FAQs", href: "#"},
-      {label: "Contact Us", href: "#"},
-    ],
-  },
-  {
-    title: "Regulatory",
-    links: [
-      {label: "Terms of Use", href: "https://aptoslabs.com/terms"},
-      {label: "Privacy Policy", href: "https://aptoslabs.com/privacy"},
-    ],
-  },
+const footerLinks = [
+  {label: "Doc", href: "#"},
+  {label: "Support", href: "#"},
+  {label: "Terms", href: "https://aptoslabs.com/terms"},
+  {label: "Privacy Policy", href: "https://aptoslabs.com/privacy"},
 ];
 
 export default function Footer() {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === "dark";
-
   return (
     <Box
       sx={{
-        background: "transparent",
-        color: isDark ? "#CCC" : grey[900],
-        pt: 8,
-        mt: 8,
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: "rgba(0, 0, 0, 0.8)", // Black background to match page base #000
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        // borderTop removed for seamless blend
+        pointerEvents: "auto",
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)",
+        paddingTop: "16px",
+        zIndex: 100,
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
       }}
     >
-      <Container
-        maxWidth={false}
+      <Box
         sx={{
-          width: {xs: "95%", md: "70%"},
-          "@media (min-width: 1920px)": {
-            width: "1200px",
-          },
-          mx: "auto",
-          px: "0 !important",
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          // Responsive padding to match Figma's 240px on large screens but adapt for smaller ones
+          px: {xs: 3, md: 6, lg: 10, xl: "240px"},
+          pointerEvents: "auto",
         }}
       >
-        <Grid container spacing={4} justifyContent="space-between">
-          {/* Left Column */}
-          <Grid size={{xs: 12, md: 3}}>
-            <Stack spacing={4} alignItems={{xs: "center", md: "flex-start"}}>
-              {/* Logo */}
-              <Link to="/" color="inherit" underline="none">
-                <Box
-                  component="img"
-                  src={Logo}
-                  alt="Settle Explorer"
-                  sx={{height: "40px", width: "auto", display: "block"}}
-                />
-              </Link>
-              {/* Social Icons */}
-              <Stack
-                direction="row"
-                spacing={2}
-                justifyContent={{xs: "center", md: "flex-start"}}
-              >
-                {socialLinks.map((link) => (
-                  <Link
-                    key={link.title}
-                    to={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={link.title}
-                    sx={{
-                      color: isDark ? "#999" : grey[600],
-                      "&:hover": {color: isDark ? "#FFF" : grey[900]},
-                      display: "block",
-                      lineHeight: 0,
-                    }}
-                  >
-                    <SvgIcon
-                      component={link.icon}
-                      inheritViewBox
-                      sx={{fontSize: 24}}
-                    />
-                  </Link>
-                ))}
-              </Stack>
-              {/* Copyright */}
-              <Typography
-                sx={{
-                  color: isDark ? "#666" : grey[500],
-                  fontSize: "12px",
-                  lineHeight: "16px",
-                  fontFamily: '"SF Pro", system-ui, sans-serif',
-                  textAlign: {xs: "center", md: "left"},
-                }}
-              >
-                Copyright © {new Date().getFullYear()} settle.xyz
-              </Typography>
-            </Stack>
-          </Grid>
-
-          {/* Right Columns (Links) */}
-          <Grid size={{xs: 12, md: 9}}>
-            <Grid
-              container
-              spacing={{xs: 3, sm: 4}}
-              justifyContent={{xs: "center", md: "flex-end"}}
-            >
-              {footerSections.map((section) => (
-                <Grid
-                  size={{xs: 6, sm: 3, md: "auto"}}
-                  key={section.title}
-                  sx={{minWidth: {md: 120}}}
-                >
-                  <Stack spacing={2}>
-                    <Typography
-                      sx={{
-                        color: isDark ? "#fff" : grey[700],
-                        fontSize: "16px",
-                        fontWeight: 700,
-                        fontFamily: '"Sora", sans-serif',
-                      }}
-                    >
-                      {section.title}
-                    </Typography>
-                    <Stack spacing={1.5}>
-                      {section.links.map((link) => (
-                        <Link
-                          key={link.label}
-                          to={link.href}
-                          sx={{
-                            color: isDark ? "#CCC" : grey[600],
-                            fontSize: "14px",
-                            fontWeight: 400,
-                            lineHeight: "18px",
-                            fontFamily: '"SF Pro", system-ui, sans-serif',
-                            textDecoration: "none",
-                            "&:hover": {
-                              color: isDark ? "#FFF" : grey[900],
-                            },
-                          }}
-                        >
-                          {link.label}
-                        </Link>
-                      ))}
-                    </Stack>
-                  </Stack>
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-        </Grid>
-        <Typography
+        {/* Stable Connection Badge */}
+        <Box
           sx={{
-            mt: "60px",
-            color: "#666",
-            fontFamily: '"SF Pro Rounded", "SF Pro", system-ui, sans-serif',
-            fontSize: "14px",
-            fontStyle: "normal",
-            fontWeight: 400,
-            lineHeight: "22px", // 157.143%
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "4px",
+            backgroundColor: "rgba(205, 185, 249, 0.12)",
+            borderRadius: "38px",
+            padding: "2px 6px",
           }}
         >
-          Global Markets tokens provide their holders with economic exposure to
-          the value of their underlying publicly traded assets, including the
-          value of dividends (less applicable tax withholdings). However, the
-          Tokens are not themselves stocks or ETFs, and they do not provide
-          their holders with rights to hold or receive their respective
-          underlying assets.
-        </Typography>
-      </Container>
-      <FooterDecoration />
+          <Box
+            sx={{
+              width: "4px",
+              height: "4px",
+              borderRadius: "50%",
+              backgroundColor: "#7D6097",
+              backgroundImage:
+                "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%224%22 height=%224%22 viewBox=%220 0 4 4%22 fill=%22none%22%3E%3Ccircle cx=%222%22 cy=%222%22 r=%222%22 fill=%22%23CDB9F9%22/%3E%3C/svg%3E')",
+              backgroundSize: "cover",
+            }}
+          />
+          <Typography
+            sx={{
+              color: "#CDB9F9",
+              fontFamily: '"SF Pro", sans-serif',
+              fontSize: "12px",
+              fontWeight: 400,
+              lineHeight: "16px",
+              letterSpacing: 0,
+            }}
+          >
+            Stable Connection
+          </Typography>
+        </Box>
+
+        {/* Right Links */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          {footerLinks.map((link) => (
+            <MuiLink
+              key={link.label}
+              href={link.href}
+              target={link.href.startsWith("http") ? "_blank" : undefined}
+              rel="noopener noreferrer"
+              underline="none"
+              sx={{
+                color: "#999",
+                fontFamily: '"SF Pro", sans-serif',
+                fontSize: "12px",
+                fontWeight: 400,
+                lineHeight: "16px",
+                transition: "color 0.2s",
+                "&:hover": {
+                  color: "#CDB9F9",
+                },
+              }}
+            >
+              {link.label}
+            </MuiLink>
+          ))}
+        </Stack>
+      </Box>
     </Box>
   );
 }

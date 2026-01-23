@@ -13,7 +13,7 @@ export const grey = {
   900: "#151114",
 };
 
-// Primary Palette - Settle Brand Purple
+// Primary Palette - Intention Brand Purple
 export const primary = {
   50: "#F6F4FE",
   100: "#F0EAFD",

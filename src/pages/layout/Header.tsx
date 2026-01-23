@@ -142,7 +142,7 @@ export default function Header() {
                 <Box
                   component="img"
                   src={Logo}
-                  alt="Settle Explorer"
+                  alt="Intention Explorer"
                   sx={{
                     height: "48px",
                     width: "auto",

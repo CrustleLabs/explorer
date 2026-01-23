@@ -95,7 +95,7 @@ export default function HeroSection() {
           >
             <Box>
               <Typography variant="h1" sx={gradientTitleSx}>
-                Settle Explorer
+                Intention Explorer
               </Typography>
 
               <Typography

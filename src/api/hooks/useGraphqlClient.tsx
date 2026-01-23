@@ -20,13 +20,10 @@ const envGraphqlUrl =
   "https://devnet-storage.crustle.xyz/v1/graphql";
 
 export function getGraphqlURI(networkName: NetworkName): string | undefined {
-  const isLocalhost =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-
-  if (isLocalhost && (networkName === "devnet" || networkName === "local")) {
-    return "/v1/graphql";
-  }
+  /*
+   * Removed forced proxy logic per user request.
+   * VITE_GRAPHQL_URL should be used directly.
+   */
 
   switch (networkName) {
     case "mainnet":

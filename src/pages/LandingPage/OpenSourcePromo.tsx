@@ -322,7 +322,7 @@ export default function OpenSourcePromo() {
             cursor: "default",
           }}
         >
-          {"< On the Settle chain >"}
+          {"< On the Intention chain >"}
         </Typography>
       </Box>
     </Box>

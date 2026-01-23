@@ -4,7 +4,6 @@ import RecentDataSection from "./RecentDataSection";
 import {usePageMetadata} from "../../components/hooks/usePageMetadata";
 import NetworkInfoSection from "./NetworkInfoSection";
 import HeroSection from "./HeroSection";
-import OpenSourcePromo from "./OpenSourcePromo";
 import FadeIn from "../../components/FadeIn";
 
 export default function LandingPage() {
@@ -31,11 +30,6 @@ export default function LandingPage() {
       {/* Recent Blocks & Transactions */}
       <FadeIn delay={200} duration={400}>
         <RecentDataSection />
-      </FadeIn>
-
-      {/* Open Source / Code Promo */}
-      <FadeIn delay={300} duration={400}>
-        <OpenSourcePromo />
       </FadeIn>
     </Box>
   );

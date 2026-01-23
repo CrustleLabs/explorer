@@ -28,7 +28,7 @@ export default function UnifiedPageHeader({
           color="#999"
           fontFamily='"SF Pro", sans-serif'
         >
-          Settle Explorer
+          Intention Explorer
         </Typography>
         <Typography
           variant="body2"

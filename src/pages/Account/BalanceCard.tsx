@@ -1,8 +1,6 @@
 import React, {useState, useEffect} from "react";
-import {Link, Stack, Typography} from "@mui/material";
+import {Box, Link, Stack, Typography} from "@mui/material";
 import {getFormattedBalanceStr} from "../../components/IndividualPageContent/ContentValue/CurrencyValue";
-import {Card} from "../../components/Card";
-import {grey} from "../../themes/colors/aptosColorPalette";
 import StyledTooltip from "../../components/StyledTooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {useGetAccountAPTBalance} from "../../api/hooks/useGetAccountAPTBalance";
@@ -39,44 +37,81 @@ export default function BalanceCard({address}: BalanceCardProps) {
       : null;
 
   return balance.data ? (
-    <Card height="auto">
-      <Stack spacing={1.5} marginY={1}>
-        {/* APT balance */}
-        <Typography fontSize={17} fontWeight={700}>
+    <Box
+      sx={{
+        backgroundColor: "#16141A",
+        borderRadius: "24px",
+        border: "0.5px solid rgba(255,255,255,0.12)",
+        p: 3,
+        height: "fit-content",
+      }}
+    >
+      <Stack spacing={1.5}>
+        {/* APT balance - large text */}
+        <Typography
+          sx={{
+            fontSize: "24px",
+            fontWeight: 700,
+            fontFamily: '"SF Pro", sans-serif',
+            color: "#fff",
+          }}
+        >
           {`${getFormattedBalanceStr(balance.data)} APT`}
         </Typography>
 
-        {/* USD value */}
-        {globalState.network_name === "mainnet" && balanceUSD !== null && (
-          <Typography fontSize={14} color={grey[450]}>
-            ${balanceUSD.toLocaleString(undefined, {maximumFractionDigits: 2})}{" "}
-            USD
-          </Typography>
-        )}
-
+        {/* Balance label with info icon */}
         <Stack direction="row" spacing={1} alignItems="center">
-          <Typography fontSize={12} color={grey[450]}>
+          <Typography
+            sx={{
+              fontSize: "12px",
+              color: "#666",
+              fontFamily: '"SF Pro", sans-serif',
+            }}
+          >
             Balance
           </Typography>
           <StyledTooltip
             title={`This balance reflects the amount of APT tokens held in your wallet${globalState.network_name === "mainnet" ? ` and their live value in USD at a rate of 1 APT = $${price?.toFixed(2)}` : ""}.`}
           >
-            <InfoOutlinedIcon sx={{fontSize: 15, color: grey[450]}} />
+            <InfoOutlinedIcon sx={{fontSize: 14, color: "#666"}} />
           </StyledTooltip>
         </Stack>
 
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Link
-            href={`https://aptos.lightscan.one/portfolio/${address}`}
-            underline="none"
-            fontSize={12}
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* USD value - only show on mainnet */}
+        {globalState.network_name === "mainnet" && balanceUSD !== null && (
+          <Typography
+            sx={{
+              fontSize: "14px",
+              color: "#999",
+              fontFamily: '"SF Pro", sans-serif',
+            }}
           >
-            DeFi positions on Lightscan <OpenInNew sx={{fontSize: 12}} />
-          </Link>
-        </Stack>
+            ${balanceUSD.toLocaleString(undefined, {maximumFractionDigits: 2})}{" "}
+            USD
+          </Typography>
+        )}
+
+        {/* DeFi link */}
+        <Link
+          href={`https://aptos.lightscan.one/portfolio/${address}`}
+          underline="none"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            fontSize: "12px",
+            color: "#CDB9F9",
+            fontFamily: '"SF Pro", sans-serif',
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            "&:hover": {
+              color: "#B692F4",
+            },
+          }}
+        >
+          DeFi positions on Lightscan <OpenInNew sx={{fontSize: 12}} />
+        </Link>
       </Stack>
-    </Card>
+    </Box>
   ) : null;
 }

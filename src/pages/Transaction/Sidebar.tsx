@@ -10,6 +10,7 @@ import {useGlobalState} from "../../global-config/GlobalConfig";
 import CubeIcon from "../../assets/svg/cube.svg?react";
 import {useGetIndexerSubaccounts} from "../../api/hooks/useGetIndexerSubaccounts";
 import IdenticonImg from "../../components/IdenticonImg";
+import {useGetRealizedPnl} from "../../api/hooks/useGetRealizedPnl";
 
 import SkeletonBlock from "../../components/SkeletonBlock";
 
@@ -145,6 +146,13 @@ export default function TransactionSidebar({
             </Typography>
             <SkeletonBlock width="60%" height={28} />
           </Box>
+
+          <Box>
+            <Typography sx={{...sectionLabelStyle, mb: 0.5}}>
+              Total P&L
+            </Typography>
+            <SkeletonBlock width="60%" height={28} />
+          </Box>
         </Stack>
       </Box>
     );
@@ -192,9 +200,16 @@ export default function TransactionSidebar({
           ?.arguments?.[0] || txn.sender
       : txn.sender;
 
+    // Convert to EVM for API calls
+    const evmAddress = effectiveUser ? `0x${effectiveUser.slice(-40)}` : "";
+
     // Fetch real account data from indexer API
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const {data: subaccountsData} = useGetIndexerSubaccounts(effectiveUser);
+    const {data: subaccountsData} = useGetIndexerSubaccounts(evmAddress);
+
+    // Fetch realized PnL
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const {realizedPnl} = useGetRealizedPnl(evmAddress);
 
     // Calculate Total Value: sum of all subaccounts' equity
     const totalValue =
@@ -214,6 +229,8 @@ export default function TransactionSidebar({
           ),
         0,
       ) || 0;
+
+    const totalPnl = realizedPnl + unrealizedPnl;
 
     return (
       <Box
@@ -388,6 +405,27 @@ export default function TransactionSidebar({
             >
               {unrealizedPnl >= 0 ? "+" : ""}$
               {unrealizedPnl.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Typography>
+          </Box>
+
+          {/* Total P&L */}
+          <Box>
+            <Typography sx={{...sectionLabelStyle, mb: 0.5}}>
+              Total P&L
+            </Typography>
+            <Typography
+              sx={{
+                color: totalPnl >= 0 ? "#03A881" : "#DC2971",
+                fontSize: "24px",
+                fontWeight: 700,
+                fontFamily: '"SF Pro", sans-serif',
+              }}
+            >
+              {totalPnl >= 0 ? "+" : ""}$
+              {totalPnl.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}

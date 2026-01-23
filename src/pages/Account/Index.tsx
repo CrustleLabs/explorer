@@ -1,11 +1,10 @@
 import {useParams} from "react-router-dom";
-import {Grid} from "@mui/material";
+import {Box, Grid, Typography} from "@mui/material";
 import React, {useEffect} from "react";
-import AccountTabs, {TabValue} from "./Tabs";
-import AccountTitle from "./Title";
-import BalanceCard from "./BalanceCard";
-import PageHeader from "../layout/PageHeader";
-import {useGetIsGraphqlClientSupported} from "../../api/hooks/useGraphqlClient";
+import AccountOverviewTab from "./Tabs/AccountOverviewTab";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import {BackButton} from "../../components/GoBack";
+import UnifiedPageHeader from "../../components/UnifiedPageHeader";
 import LoadingModal from "../../components/LoadingModal";
 import Error from "./Error";
 import {AptosNamesBanner} from "./Components/AptosNamesBanner";
@@ -18,51 +17,6 @@ import {useNavigate} from "../../routing";
 import {ResponseError, ResponseErrorType} from "../../api/client";
 import {objectCoreResource} from "../../constants";
 import {useGetAddressFromName} from "../../api/hooks/useGetANS";
-
-const TAB_VALUES_FULL: TabValue[] = [
-  "transactions",
-  "coins",
-  "tokens",
-  "resources",
-  "modules",
-  "info",
-];
-
-const TAB_VALUES: TabValue[] = ["transactions", "resources", "modules", "info"];
-
-const TAB_VALUES_MULTISIG_FULL: TabValue[] = [
-  "transactions",
-  "multisig",
-  "coins",
-  "tokens",
-  "resources",
-  "modules",
-  "info",
-];
-
-const TAB_VALUES_MULTISIG: TabValue[] = [
-  "transactions",
-  "multisig",
-  "resources",
-  "modules",
-  "info",
-];
-
-// TODO: add ability for object information
-const OBJECT_VALUES_FULL: TabValue[] = [
-  "transactions",
-  "coins",
-  "tokens",
-  "resources",
-  "modules",
-  "info",
-];
-const OBJECT_TAB_VALUES: TabValue[] = [
-  "transactions",
-  "resources",
-  "modules",
-  "info",
-];
 
 type AccountPageProps = {
   isObject?: boolean;
@@ -79,7 +33,6 @@ export default function AccountPage({
   isObject: alreadyIsObject,
 }: AccountPageProps) {
   const navigate = useNavigate();
-  const isGraphqlClientSupported = useGetIsGraphqlClientSupported();
   const maybeAddress = useParams().address;
 
   // Check if this is an ANS name
@@ -130,14 +83,11 @@ export default function AccountPage({
     (r) => r.type === "0x1::account::Account",
   )?.data as Types.AccountData | undefined;
   const objectData = resourceData?.find((r) => r.type === objectCoreResource);
-  const tokenData = resourceData?.find((r) => r.type === "0x4::token::Token");
   const multisigData = resourceData?.find(
     (r) => r.type === "0x1::multisig_account::MultisigAccount",
   );
   const isAccount = !!accountData;
   const isObject = !!objectData;
-  const isDeleted = !isObject;
-  const isToken = !!tokenData;
   const isMultisig = !!multisigData;
 
   const isLoading = resourcesIsLoading || (!!isAptName && ansQuery.isLoading);
@@ -187,62 +137,91 @@ export default function AccountPage({
 
   const [state] = useGlobalState();
 
-  let tabValues;
-  if (isObject) {
-    tabValues = isGraphqlClientSupported
-      ? OBJECT_VALUES_FULL
-      : OBJECT_TAB_VALUES;
-  } else if (isMultisig) {
-    tabValues = isGraphqlClientSupported
-      ? TAB_VALUES_MULTISIG_FULL
-      : TAB_VALUES_MULTISIG;
-  } else {
-    tabValues = isGraphqlClientSupported ? TAB_VALUES_FULL : TAB_VALUES;
-  }
-
-  const accountTabs = (
-    <AccountTabs
-      address={address}
-      accountData={accountData}
-      objectData={objectData}
-      resourceData={resourceData}
-      tabValues={tabValues}
-      isObject={isObject}
-    />
-  );
-
   return (
-    <Grid container spacing={1}>
+    <Grid container spacing={2}>
       <LoadingModal open={isLoading} />
-      <Grid size={{xs: 12, md: 12, lg: 12}}>
-        <PageHeader />
+
+      {/* Back Button */}
+      <Grid size={{xs: 12}}>
+        <BackButton handleClick={() => navigate(-1)} />
       </Grid>
-      <Grid size={{xs: 12, md: 8, lg: 9}} alignSelf="center">
-        <AccountTitle
-          address={address}
-          isMultisig={isMultisig}
-          isObject={isObject}
-          isDeleted={isDeleted}
-          isToken={isToken}
-        />
+
+      {/* Unified Header */}
+      <Grid size={{xs: 12}}>
+        <UnifiedPageHeader title="Account Details" />
       </Grid>
-      <Grid size={{xs: 12, md: 4, lg: 3}} marginTop={{md: 0, xs: 2}}>
-        <BalanceCard address={address} />
+
+      {/* Address Pill */}
+      <Grid size={{xs: 12}}>
+        {(() => {
+          // Convert Aptos address (66 chars) to EVM address (42 chars)
+          // EVM address is the last 40 hex chars + 0x prefix
+          const evmAddress = address ? `0x${address.slice(-40)}` : "";
+          const displayAddress = evmAddress
+            ? `${evmAddress.substring(0, 6)}...${evmAddress.substring(evmAddress.length - 4)}`
+            : "";
+
+          return (
+            <Box
+              sx={{
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                borderRadius: "100px",
+                px: 2,
+                py: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 1,
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.12)",
+                },
+              }}
+              onClick={() => {
+                if (evmAddress) navigator.clipboard.writeText(evmAddress);
+              }}
+            >
+              {/* Avatar placeholder */}
+              <Box
+                sx={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  background:
+                    "linear-gradient(135deg, #CDB9F9 0%, #8FC7FA 100%)",
+                }}
+              />
+              <Typography
+                sx={{
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontFamily: "monospace",
+                }}
+              >
+                {displayAddress}
+              </Typography>
+              <ContentCopyIcon sx={{fontSize: 14, color: "#666"}} />
+            </Box>
+          );
+        })()}
       </Grid>
-      <Grid size={{xs: 12, md: 8, lg: 12}} marginTop={4} alignSelf="center">
+
+      {/* Portfolio Dashboard Content */}
+      <Grid size={{xs: 12}} sx={{mt: 3}}>
+        <AccountOverviewTab address={address} />
+      </Grid>
+
+      {/* Banners */}
+      <Grid size={{xs: 12}} sx={{mt: 4}}>
         {state.network_name === Network.MAINNET && <AptosNamesBanner />}
         {isMultisig && <PetraVaultBanner address={address} />}
       </Grid>
-      <Grid size={{xs: 12, md: 12, lg: 12}} marginTop={4}>
-        {error ? (
-          <>
-            {accountTabs}
-            <Error address={address} error={error} />
-          </>
-        ) : (
-          <>{accountTabs}</>
-        )}
-      </Grid>
+
+      {/* Error display if any */}
+      {error && (
+        <Grid size={{xs: 12}} sx={{mt: 4}}>
+          <Error address={address} error={error} />
+        </Grid>
+      )}
     </Grid>
   );
 }

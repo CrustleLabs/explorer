@@ -89,6 +89,7 @@ export default function ExplorerLayout({children}: LayoutProps) {
                   flexDirection: "column",
                   flexGrow: 4,
                   paddingTop: "7rem", // 5rem header + 2rem spacing
+                  paddingBottom: "calc(40px + env(safe-area-inset-bottom))", // Spacing for fixed footer
                   width: {xs: "95%", md: "70%"},
                   "@media (min-width: 1920px)": {
                     width: "1200px",

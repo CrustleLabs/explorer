@@ -1,4 +1,4 @@
-# Settle Explorer
+# Intention Explorer
 
 ## How to use
 
