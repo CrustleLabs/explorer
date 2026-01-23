@@ -203,7 +203,7 @@ export default function LatestActivityList({address}: {address?: string}) {
       action: isBuy ? "Buy" : "Sell",
       actionColor: isBuy ? "#03A881" : "#DC2971",
       symbol: order.ticker,
-      amount: (isBuy ? "+" : "-") + Number(order.size).toFixed(4),
+      amount: Math.abs(Number(order.size)).toFixed(4),
       time: timeAgo,
       status,
       statusColor,
