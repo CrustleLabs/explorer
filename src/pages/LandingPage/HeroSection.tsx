@@ -2,8 +2,6 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {Grid} from "@mui/material";
 import ActivityGraph from "./ActivityGraph";
-import {Types} from "aptos";
-import {useGetMostRecentBlocks} from "../../api/hooks/useGetMostRecentBlocks";
 import {useMemo} from "react";
 
 // Gradient title styling
@@ -14,7 +12,7 @@ const gradientTitleSx = {
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",
   fontWeight: 700,
-  fontSize: {xs: "28px", sm: "36px", md: "48px"},
+  fontSize: {xs: "28px", sm: "36px", md: "42px"},
   lineHeight: 1.1,
   fontFamily: '"SF Pro", system-ui, -apple-system, sans-serif',
   overflowWrap: "break-word",
@@ -44,21 +42,22 @@ const ACTIVITY_COLORS = [
   "#B692F4", // Darker Purple
 ];
 
-function calculateAvgBlockTime(blocks: Types.Block[]): number | null {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function calculateAvgBlockTime(blocks: any[]): number | null {
   if (!blocks || blocks.length < 2) return null;
 
   let totalDiff = 0n;
   let count = 0;
 
   for (let i = 0; i < blocks.length - 1; i++) {
+    // Check if block_timestamp exists (WS data might vary, but usually present)
+    if (!blocks[i].block_timestamp || !blocks[i + 1].block_timestamp) continue;
+
     const current = BigInt(blocks[i].block_timestamp);
     const next = BigInt(blocks[i + 1].block_timestamp);
-    // Blocks are usually returned in descending order of height (latest first)
-    // So current (index i) should be > next (index i+1)
-    // But check the hook implementation/API return order.
-    // getRecentBlocks typically returns descending order (latest first).
-    // So diff = blocks[i].timestamp - blocks[i+1].timestamp
+
     const diff = current - next;
+    // Only count positive diffs (latest to oldest)
     if (diff > 0n) {
       totalDiff += diff;
       count++;
@@ -72,20 +71,37 @@ function calculateAvgBlockTime(blocks: Types.Block[]): number | null {
   return Math.round(avgMicroseconds / 1000);
 }
 
-export default function HeroSection() {
-  const {recentBlocks} = useGetMostRecentBlocks(undefined, 10);
+interface HeroSectionProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks: any[];
+}
 
+export default function HeroSection({blocks}: HeroSectionProps) {
   const blockTimeMs = useMemo(() => {
-    return calculateAvgBlockTime(recentBlocks);
-  }, [recentBlocks]);
+    return calculateAvgBlockTime(blocks);
+  }, [blocks]);
 
   // Fallback to 99 if calculation fails or no data yet
   const displayTime = blockTimeMs ?? 99;
 
   return (
     <Box sx={heroCardSx}>
-      <Grid container spacing={4} alignItems="flex-start">
-        {/* Left Side: Title, Info, Legend */}
+      <Grid container spacing={4}>
+        {/* Row 1: Title (Full Width) */}
+        <Grid size={{xs: 12}}>
+          <Typography
+            variant="h1"
+            sx={{
+              ...gradientTitleSx,
+              fontSize: {xs: "28px", sm: "36px", md: "48px"},
+              whiteSpace: "nowrap",
+            }}
+          >
+            Intention Live Block Activity
+          </Typography>
+        </Grid>
+
+        {/* Row 2 Left: Info, Legend */}
         <Grid size={{xs: 12, md: 4}}>
           <Box
             sx={{
@@ -93,16 +109,13 @@ export default function HeroSection() {
               flexDirection: "column",
               gap: 3,
               height: "100%",
+              justifyContent: "space-between", // Ensure spacing distribution
             }}
           >
             <Box>
-              <Typography variant="h1" sx={gradientTitleSx}>
-                Intention Explorer
-              </Typography>
-
               <Typography
                 variant="body1"
-                sx={{color: "#999", mt: 3, fontSize: "16px"}}
+                sx={{color: "#999", fontSize: "16px"}}
               >
                 Real-time visualization of network activity
               </Typography>
@@ -135,9 +148,6 @@ export default function HeroSection() {
                 </Box>
               </Box>
             </Box>
-
-            {/* Spacer to push legend down if height allows, or just margin */}
-            <Box sx={{flexGrow: 1, minHeight: "40px"}} />
 
             {/* Legend */}
             <Box>
@@ -224,17 +234,19 @@ export default function HeroSection() {
           </Box>
         </Grid>
 
-        {/* Right Side: Visualization Grid */}
+        {/* Row 2 Right: Visualization Grid */}
         <Grid size={{xs: 12, md: 8}}>
           <Box
             sx={{
-              mt: {md: 9},
               width: "100%",
               aspectRatio: "770/235",
               overflow: "hidden",
             }}
           >
-            <ActivityGraph sx={{width: "100%", height: "100%"}} />
+            <ActivityGraph
+              sx={{width: "100%", height: "100%"}}
+              recentBlocks={blocks}
+            />
           </Box>
         </Grid>
       </Grid>

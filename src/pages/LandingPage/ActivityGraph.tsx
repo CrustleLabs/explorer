@@ -1,9 +1,6 @@
 import Box from "@mui/material/Box";
 import {useEffect, useState, useRef} from "react";
 
-import {useGlobalState} from "../../global-config/GlobalConfig";
-import {getLedgerInfo} from "../../api";
-import {useQuery} from "@tanstack/react-query";
 import {SxProps} from "@mui/material";
 import ScrollingCodeBackground from "./ScrollingCodeBackground";
 import Tooltip, {tooltipClasses, TooltipProps} from "@mui/material/Tooltip";
@@ -39,6 +36,8 @@ interface GridItem {
 
 interface ActivityGraphProps {
   sx?: SxProps;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recentBlocks?: any[];
 }
 
 const truncateHash = (hash?: string) => {
@@ -61,8 +60,10 @@ const CustomTooltip = styled(({className, ...props}: TooltipProps) => (
   },
 }));
 
-export default function ActivityGraph({sx}: ActivityGraphProps) {
-  const [state] = useGlobalState();
+export default function ActivityGraph({
+  sx,
+  recentBlocks = [],
+}: ActivityGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Start with 0,0 to prevent rendering before proper size calculation
   const [gridDimensions, setGridDimensions] = useState({rows: 0, cols: 0});
@@ -97,12 +98,6 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
           };
           // Keep ref in sync for use in async callbacks
           dimensionsRef.current = newDims;
-          console.log("[ActivityGraph] Dimensions changed:", {
-            from: prev,
-            to: newDims,
-            containerSize: {width, height},
-            totalSlots: newDims.rows * newDims.cols,
-          });
           return newDims;
         }
         return prev;
@@ -144,116 +139,80 @@ export default function ActivityGraph({sx}: ActivityGraphProps) {
           id: `placeholder-${prev.length + i}`, // Stable placeholder IDs
           txCount: -1, // -1 indicating empty/placeholder
         }));
-        console.log("[ActivityGraph] Adding placeholders:", {
-          prevLength: prev.length,
-          needed,
-          newLength: prev.length + needed,
-          targetSize: totalSize,
-        });
         return [...prev, ...placeholders];
       }
       // prev.length > totalSize - truncate to fit
-      console.log("[ActivityGraph] Truncating items:", {
-        prevLength: prev.length,
-        newLength: totalSize,
-      });
       return prev.slice(0, totalSize);
     });
   }, [gridDimensions]);
 
-  const lastFetchedHeight = useRef<number | null>(null);
-
-  // Poll for ledger info to get the latest block height
-  const {data: ledgerData} = useQuery({
-    queryKey: ["ledgerInfo", state.network_value],
-    queryFn: () => getLedgerInfo(state.aptos_client),
-    refetchInterval: 1500, // Poll every 1.5s
-  });
-
-  const currentHeight = ledgerData ? parseInt(ledgerData.block_height) : null;
-
+  // Process incoming blocks
   useEffect(() => {
-    if (currentHeight === null || gridItems.length === 0) return;
+    if (!recentBlocks || recentBlocks.length === 0) return;
 
-    const fetchBlocks = async () => {
-      let startHeight = currentHeight;
-      let endHeight = currentHeight;
+    // Filter out blocks we already have processed?
+    // Actually, recentBlocks from WS will be accumulating.
+    // But ActivityGraph grid uses a scrolling buffer approach.
+    // If we just mapped recentBlocks to items, we might replace the whole grid if recentBlocks is small/large.
+    // The previous logic accumulated updates selectively.
+    // However, if recentBlocks is the *latest* list (e.g. 30 items), and our grid is 200 items,
+    // we want to prepend ONLY the new ones we haven't seen.
 
-      if (lastFetchedHeight.current === null) {
-        lastFetchedHeight.current = currentHeight;
-        startHeight = currentHeight;
-        endHeight = currentHeight;
-      } else if (currentHeight > lastFetchedHeight.current) {
-        startHeight = lastFetchedHeight.current + 1;
-        endHeight = currentHeight;
-        lastFetchedHeight.current = currentHeight;
-      } else {
-        return;
+    // For simplicity with WS hook (which manages duplicates), let's assume valid new blocks at the top.
+
+    // Convert all recent blocks to items
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const itemsFromProps: GridItem[] = recentBlocks.map((block: any) => {
+      let txCount = 0;
+      if (block.tx_count !== undefined) {
+        txCount = block.tx_count;
+      } else if (block.first_version && block.last_version) {
+        txCount =
+          parseInt(block.last_version) - parseInt(block.first_version) + 1;
       }
+      return {
+        id: `block-${block.block_height}`,
+        txCount,
+        blockHeight: block.block_height,
+        timestamp: block.block_timestamp,
+        hash: block.block_hash,
+        status: "Success",
+      };
+    });
 
-      try {
-        const promises = [];
-        for (let h = startHeight; h <= endHeight; h++) {
-          promises.push(state.aptos_client.getBlockByHeight(h, false));
-        }
+    // Find new items that are NOT in current gridItems (by ID)
+    // Optimization: check IDs set.
+    const currentIds = new Set(gridItems.map((i) => i.id));
+    const newItems = itemsFromProps.filter((item) => !currentIds.has(item.id));
 
-        const newBlocks = await Promise.all(promises);
+    if (newItems.length === 0) return;
 
-        // Process new blocks into items
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newItems: GridItem[] = newBlocks.map((block: any) => {
-          const txCount =
-            parseInt(block.last_version) - parseInt(block.first_version) + 1;
-          return {
-            id: `block-${block.block_height}`, // Use block height as stable unique ID
-            txCount,
-            blockHeight: block.block_height,
-            timestamp: block.block_timestamp,
-            hash: block.block_hash,
-            status: "Success",
-          };
+    // Since recentBlocks is newest first, the new items are likely at the TOP.
+    // We reverse so we can append them in order if we were building upwards,
+    // OR we iterate naturally if we prepend.
+
+    // If we have new items [Block 102, Block 101] and grid has [Block 100...]
+    // We want final grid: [102, 101, 100...]
+
+    // NOTE: newItems from filter might lose order if we are not careful?
+    // itemsFromProps is [Newest...Oldest].
+    // gridItems is [Newest...Oldest].
+    // so newItems will be the top of itemsFromProps.
+
+    // If isHovering, buffer them.
+    if (isHoveringRef.current) {
+      pendingItemsRef.current = [...newItems, ...pendingItemsRef.current];
+    } else {
+      const {rows, cols} = dimensionsRef.current;
+      const totalSize = rows * cols;
+      if (totalSize > 0) {
+        setGridItems((prev) => {
+          const updated = [...newItems, ...prev].slice(0, totalSize);
+          return updated;
         });
-
-        if (isHoveringRef.current) {
-          // If hovering, accumulate updates without rendering
-          pendingItemsRef.current = [...pendingItemsRef.current, ...newItems];
-          console.log(
-            "[ActivityGraph] Hovering - buffered items:",
-            pendingItemsRef.current.length,
-          );
-        } else {
-          // If not hovering, apply updates immediately
-          // Use ref to always get current dimensions (avoid stale closure)
-          const {rows, cols} = dimensionsRef.current;
-          const totalSize = rows * cols;
-          console.log("[ActivityGraph] Fetch update:", {
-            newItemsCount: newItems.length,
-            dimensionsRef: {rows, cols},
-            totalSize,
-          });
-          if (totalSize > 0) {
-            setGridItems((prev) => {
-              // We reverse newItems so newest is first in the list to be prepended
-              const updatesToAdd = [...newItems].reverse();
-              const updatedList = [...updatesToAdd, ...prev];
-              const result = updatedList.slice(0, totalSize);
-              console.log("[ActivityGraph] After fetch setGridItems:", {
-                prevLength: prev.length,
-                afterPrepend: updatedList.length,
-                finalLength: result.length,
-                targetSize: totalSize,
-              });
-              return result;
-            });
-          }
-        }
-      } catch {
-        // ignore errors
       }
-    };
-
-    fetchBlocks();
-  }, [currentHeight, state.aptos_client, gridItems.length, gridDimensions]); // Add gridDimensions to update if resized
+    }
+  }, [recentBlocks, gridItems, gridDimensions]);
 
   const handleMouseEnter = () => {
     isHoveringRef.current = true;

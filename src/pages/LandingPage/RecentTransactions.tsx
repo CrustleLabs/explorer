@@ -1,12 +1,9 @@
-import {useState, useEffect, useRef, useCallback, memo} from "react";
-import {useQuery} from "@tanstack/react-query";
+import {useState, memo, useEffect, useRef} from "react";
 import Box from "@mui/material/Box";
 import {Typography, Skeleton} from "@mui/material";
 import * as RRD from "react-router-dom";
 import Button from "@mui/material/Button";
 import {Types} from "aptos";
-import {getTransactions} from "../../api";
-import {useGlobalState} from "../../global-config/GlobalConfig";
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 import HashButton, {HashType} from "../../components/HashButton";
 import {TransactionStatus} from "../../components/TransactionStatus";
@@ -25,7 +22,6 @@ import AvatarIcon from "../../assets/svg/avatar.svg?react";
 import GearIcon from "../../assets/svg/gear.svg?react";
 
 const PREVIEW_LIMIT = 10;
-const MAX_ACCUMULATED_TXS = 30; // Maximum transactions to keep in memory (reduced for performance)
 
 // Card container styling matching Figma
 const cardSx = {
@@ -121,7 +117,9 @@ const SystemUserBadge = memo(function SystemUserBadge({
         display: "inline-flex",
         alignItems: "center",
         gap: "4px",
-        p: "4px",
+        pl: "4px",
+        pr: "12px",
+        minWidth: "100px",
       }}
     >
       {isValidator ? (
@@ -333,19 +331,33 @@ const ActionDetailsCell = memo(function ActionDetailsCell({
     );
   }
 
-  // Check if this is a dex_orderless_payload transaction
+  // Check if this is a dex transaction (either dex_orderless_payload or script_payload with orders)
   const payload =
     "payload" in transaction
       ? (transaction as Types.UserTransaction).payload
       : null;
-  const dexPayload = payload as DexPayload | null;
-  const orders = dexPayload?.orders;
-  const isDexOrder =
-    dexPayload?.type === "dex_orderless_payload" && orders && orders.length > 0;
 
-  if (isDexOrder && dexPayload?.orders) {
-    const orders = dexPayload.orders;
-    const firstOrder = orders[0];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dexPayload = payload as any;
+  let orders = dexPayload?.orders;
+
+  // Handle script_payload structure where orders are in arguments[0]
+  if (
+    !orders &&
+    dexPayload?.type === "script_payload" &&
+    dexPayload?.arguments?.length > 0
+  ) {
+    const firstArg = dexPayload.arguments[0];
+    if (firstArg && typeof firstArg === "object" && "orders" in firstArg) {
+      orders = firstArg.orders;
+    }
+  }
+
+  const isDexOrder = orders && orders.length > 0;
+
+  if (isDexOrder) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const firstOrder = orders[0] as any;
 
     return (
       <OrderInfoDisplay
@@ -379,75 +391,41 @@ function getTxVersion(tx: Types.Transaction): string {
   return "version" in tx ? tx.version : `${tx.type}-${Math.random()}`;
 }
 
-export default function RecentTransactions() {
+interface RecentTransactionsProps {
+  transactions: Types.Transaction[];
+}
+
+export default function RecentTransactions({
+  transactions,
+}: RecentTransactionsProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [state] = useGlobalState();
+  // Keep a local copy that updates only when not hovered
+  const [displayedTransactions, setDisplayedTransactions] =
+    useState(transactions);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isHovered) {
+      setDisplayedTransactions(transactions);
+      // Scroll to top when unhovering to show latest data
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({top: 0, behavior: "smooth"});
+      }
+    }
+  }, [transactions, isHovered]);
   const augmentTo = useAugmentToWithGlobalSearchParams();
   const navigate = RRD.useNavigate();
   const {data: perpetuals} = useGetPerpetuals();
 
-  // Accumulated transactions state
-  const [accumulatedTxs, setAccumulatedTxs] = useState<Types.Transaction[]>([]);
-  const seenVersions = useRef<Set<string>>(new Set());
-  const isInitialLoad = useRef(true);
-
-  const {data: transactions, isLoading} = useQuery({
-    queryKey: ["recentTransactions", state.network_value],
-    queryFn: () => getTransactions({limit: PREVIEW_LIMIT}, state.aptos_client),
-    refetchInterval: isHovered ? 0 : 5000,
-  });
-
-  // Accumulate new transactions
-  useEffect(() => {
-    if (!transactions || transactions.length === 0) return;
-
-    if (isInitialLoad.current) {
-      // First load: set initial transactions
-      const versions = transactions.map(getTxVersion);
-      seenVersions.current = new Set(versions);
-      setAccumulatedTxs(transactions);
-      isInitialLoad.current = false;
-    } else {
-      // Subsequent loads: prepend new transactions
-      const newTxs = transactions.filter((tx) => {
-        const version = getTxVersion(tx);
-        return !seenVersions.current.has(version);
-      });
-
-      if (newTxs.length > 0) {
-        newTxs.forEach((tx) => seenVersions.current.add(getTxVersion(tx)));
-        setAccumulatedTxs((prev) => {
-          const combined = [...newTxs, ...prev];
-          // Keep max accumulated transactions
-          if (combined.length > MAX_ACCUMULATED_TXS) {
-            const removed = combined.slice(MAX_ACCUMULATED_TXS);
-            removed.forEach((tx) =>
-              seenVersions.current.delete(getTxVersion(tx)),
-            );
-            return combined.slice(0, MAX_ACCUMULATED_TXS);
-          }
-          return combined;
-        });
-      }
-    }
-  }, [transactions]);
-
-  // Reset when network changes
-  useEffect(() => {
-    isInitialLoad.current = true;
-    seenVersions.current.clear();
-    setAccumulatedTxs([]);
-  }, [state.network_value]);
+  const isLoading =
+    !displayedTransactions || displayedTransactions.length === 0;
 
   // Handle row click navigation
-  const handleRowClick = useCallback(
-    (transaction: Types.Transaction) => {
-      if ("version" in transaction) {
-        navigate(augmentTo(`/txn/${transaction.version}`));
-      }
-    },
-    [navigate, augmentTo],
-  );
+  const handleRowClick = (transaction: Types.Transaction) => {
+    if ("version" in transaction) {
+      navigate(augmentTo(`/txn/${transaction.version}`));
+    }
+  };
 
   return (
     <Box
@@ -480,6 +458,7 @@ export default function RecentTransactions() {
 
       {/* Table Body */}
       <Box
+        ref={scrollContainerRef}
         sx={{
           flex: 1,
           overflowY: "auto",
@@ -488,7 +467,6 @@ export default function RecentTransactions() {
           flexDirection: "column",
           gap: 1, // 8px gap between rows
           px: 1.5, // 12px padding
-          // Custom Scrollbar
           // Custom Scrollbar
           "&::-webkit-scrollbar": {
             width: "12px",
@@ -499,20 +477,25 @@ export default function RecentTransactions() {
             marginBottom: "4px",
           },
           "&::-webkit-scrollbar-thumb": {
-            background: "#3C3C41", // Darker simplified thumb
+            background: "transparent", // Hidden by default
             borderRadius: "10px",
             border:
               "4px solid rgba(0,0,0,0)" /* Creates 4px spacing/padding around thumb */,
             backgroundClip: "padding-box",
-            "&:hover": {
-              background: "#4C4C51",
+          },
+          "&:hover": {
+            "&::-webkit-scrollbar-thumb": {
+              background: "#3C3C41",
               border: "4px solid rgba(0,0,0,0)",
               backgroundClip: "padding-box",
+              "&:hover": {
+                background: "#4C4C51",
+              },
             },
           },
         }}
       >
-        {isLoading || accumulatedTxs.length === 0
+        {isLoading
           ? // Skeleton loading
             Array.from({length: PREVIEW_LIMIT}).map((_, i) => (
               <Box key={i} sx={{...clickableRowSx, cursor: "default"}}>
@@ -533,66 +516,71 @@ export default function RecentTransactions() {
                 </Box>
               </Box>
             ))
-          : accumulatedTxs.map((transaction: Types.Transaction) => {
-              const version = getTxVersion(transaction);
-              const sender =
-                "sender" in transaction ? transaction.sender : undefined;
-              const success =
-                "success" in transaction ? transaction.success : true;
+          : displayedTransactions
+              .slice(0, PREVIEW_LIMIT)
+              .map((transaction: Types.Transaction) => {
+                const version = getTxVersion(transaction);
+                const sender =
+                  "sender" in transaction ? transaction.sender : undefined;
+                const success =
+                  "success" in transaction ? transaction.success : true;
 
-              // Determine user display for system transactions
-              const isBlockMetadata =
-                transaction.type === "block_metadata_transaction";
-              const isBlockEpilogue =
-                transaction.type === "block_epilogue_transaction";
-              const isValidatorTx =
-                transaction.type === "validator_transaction";
-              const isSystemTx =
-                isBlockMetadata || isBlockEpilogue || isValidatorTx;
+                // Determine user display for system transactions
+                const isBlockMetadata =
+                  transaction.type === "block_metadata_transaction";
+                const isBlockEpilogue =
+                  transaction.type === "block_epilogue_transaction";
+                const isValidatorTx =
+                  transaction.type === "validator_transaction";
+                const isSystemTx =
+                  isBlockMetadata || isBlockEpilogue || isValidatorTx;
 
-              // Get system user label
-              const getSystemUserLabel = (): "Validator" | "System" | null => {
-                if (isBlockMetadata || isValidatorTx) return "Validator";
-                if (isBlockEpilogue) return "System";
-                return null;
-              };
-              const systemUserLabel = getSystemUserLabel();
+                // Get system user label
+                const getSystemUserLabel = ():
+                  | "Validator"
+                  | "System"
+                  | null => {
+                  if (isBlockMetadata || isValidatorTx) return "Validator";
+                  if (isBlockEpilogue) return "System";
+                  return null;
+                };
+                const systemUserLabel = getSystemUserLabel();
 
-              return (
-                <Box
-                  key={version}
-                  sx={clickableRowSx}
-                  onClick={() => handleRowClick(transaction)}
-                >
-                  {/* User Column */}
-                  <Box sx={cellSx}>
-                    {sender ? (
-                      <HashButton
-                        hash={sender}
-                        type={HashType.ACCOUNT}
-                        size="small"
+                return (
+                  <Box
+                    key={version}
+                    sx={clickableRowSx}
+                    onClick={() => handleRowClick(transaction)}
+                  >
+                    {/* User Column */}
+                    <Box sx={cellSx}>
+                      {sender ? (
+                        <HashButton
+                          hash={sender}
+                          type={HashType.ACCOUNT}
+                          size="small"
+                        />
+                      ) : isSystemTx && systemUserLabel ? (
+                        <SystemUserBadge label={systemUserLabel} />
+                      ) : null}
+                    </Box>
+
+                    {/* Action / Details Column */}
+                    <Box sx={cellSx}>
+                      <ActionDetailsCell
+                        transaction={transaction}
+                        perpetuals={perpetuals}
+                        augmentTo={augmentTo}
                       />
-                    ) : isSystemTx && systemUserLabel ? (
-                      <SystemUserBadge label={systemUserLabel} />
-                    ) : null}
-                  </Box>
+                    </Box>
 
-                  {/* Action / Details Column */}
-                  <Box sx={cellSx}>
-                    <ActionDetailsCell
-                      transaction={transaction}
-                      perpetuals={perpetuals}
-                      augmentTo={augmentTo}
-                    />
+                    {/* Status Column */}
+                    <Box sx={{...cellSx, justifyContent: "flex-end"}}>
+                      <TransactionStatus success={success} />
+                    </Box>
                   </Box>
-
-                  {/* Status Column */}
-                  <Box sx={{...cellSx, justifyContent: "flex-end"}}>
-                    <TransactionStatus success={success} />
-                  </Box>
-                </Box>
-              );
-            })}
+                );
+              })}
       </Box>
 
       {/* View All Link */}

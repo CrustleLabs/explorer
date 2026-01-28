@@ -5,9 +5,12 @@ import {usePageMetadata} from "../../components/hooks/usePageMetadata";
 import NetworkInfoSection from "./NetworkInfoSection";
 import HeroSection from "./HeroSection";
 import FadeIn from "../../components/FadeIn";
+import {useWebSocket} from "../../api/hooks/useWebSocket";
 
 export default function LandingPage() {
   usePageMetadata({});
+  const {blocks, transactions} = useWebSocket();
+
   return (
     <Box
       sx={{
@@ -19,7 +22,7 @@ export default function LandingPage() {
     >
       {/* Hero Section with gradient title and stats */}
       <FadeIn delay={0} duration={400}>
-        <HeroSection />
+        <HeroSection blocks={blocks} />
       </FadeIn>
 
       {/* Network Info (Stats) Section */}
@@ -29,7 +32,7 @@ export default function LandingPage() {
 
       {/* Recent Blocks & Transactions */}
       <FadeIn delay={200} duration={400}>
-        <RecentDataSection />
+        <RecentDataSection blocks={blocks} transactions={transactions} />
       </FadeIn>
     </Box>
   );

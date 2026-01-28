@@ -88,11 +88,17 @@ export default function ExplorerLayout({children}: LayoutProps) {
                   display: "flex",
                   flexDirection: "column",
                   flexGrow: 4,
-                  paddingTop: "7rem", // 5rem header + 2rem spacing
+                  paddingTop: "calc(64px + 2rem)", // 64px header + 2rem spacing
                   paddingBottom: "calc(100px + env(safe-area-inset-bottom))", // Spacing for fixed footer
-                  width: {xs: "95%", md: "70%"},
-                  "@media (min-width: 1920px)": {
+                  width: {xs: "95%"},
+                  "@media (min-width: 1440px)": {
                     width: "1200px",
+                  },
+                  "@media (min-width: 1920px)": {
+                    width: "1440px",
+                  },
+                  "@media (min-width: 2560px)": {
+                    width: "1600px",
                   },
                   mx: "auto",
                   px: "0 !important",

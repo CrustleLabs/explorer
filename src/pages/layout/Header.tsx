@@ -75,7 +75,7 @@ export default function Header() {
       <Box
         sx={{
           background: "transparent",
-          height: "5rem",
+          height: "64px",
           width: "100%",
           position: "absolute",
         }}
@@ -89,7 +89,7 @@ export default function Header() {
           right: "0",
           borderRadius: "0",
           // backdropFilter: "blur(10px)", // 临时禁用，测试是否影响滚动性能
-          background: "rgba(0, 0, 0, 0.85)", // 用实色背景替代模糊
+          background: "transparent", // Default to transparent at top
           zIndex: 1100, // 确保在其他内容之上
           ...(!inView &&
             isDark && {
@@ -107,9 +107,15 @@ export default function Header() {
         <Container
           maxWidth={false}
           sx={{
-            width: {xs: "95%", md: "70%"},
-            "@media (min-width: 1920px)": {
+            width: {xs: "95%"},
+            "@media (min-width: 1440px)": {
               width: "1200px",
+            },
+            "@media (min-width: 1920px)": {
+              width: "1440px",
+            },
+            "@media (min-width: 2560px)": {
+              width: "1600px",
             },
             mx: "auto",
             display: "flex",

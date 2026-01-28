@@ -1,10 +1,8 @@
-import {useState} from "react";
-import {useQuery} from "@tanstack/react-query";
+import {useState, useEffect, useRef} from "react";
 import Box from "@mui/material/Box";
 import {Typography, Skeleton} from "@mui/material";
 import * as RRD from "react-router-dom";
 import Button from "@mui/material/Button";
-import {useGlobalState} from "../../global-config/GlobalConfig";
 import {useAugmentToWithGlobalSearchParams} from "../../routing";
 import HashButton, {HashType} from "../../components/HashButton";
 
@@ -64,7 +62,7 @@ const clickableRowSx = {
   gridTemplateColumns: "1fr 0.6fr 0.6fr 1.2fr",
   gap: 2,
   px: 1.5, // 12px
-  py: "10px",
+  py: "14px",
   flexShrink: 0,
   alignItems: "center",
   backgroundColor: "rgba(35, 34, 39, 0.6)",
@@ -85,14 +83,8 @@ const cellSx = {
   alignItems: "center",
 };
 
-type BlockInfo = {
-  block_height: string;
-  block_timestamp: string;
-  first_version: string;
-  last_version: string;
-};
-
-function formatTimeAgo(timestamp: string): string {
+function formatTimeAgo(timestamp: string | undefined): string {
+  if (!timestamp) return "";
   const now = Date.now();
   const blockTime = parseInt(timestamp) / 1000; // Convert from microseconds
   const seconds = Math.floor((now - blockTime) / 1000);
@@ -106,33 +98,30 @@ function formatTimeAgo(timestamp: string): string {
   return `${days}d ago`;
 }
 
-export default function RecentBlocks() {
+interface RecentBlocksProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks: any[]; // Using any[] to accept both API and WS block structures
+}
+
+export default function RecentBlocks({blocks}: RecentBlocksProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [state] = useGlobalState();
+  // Keep a local copy of blocks that only updates when not hovered
+  const [displayedBlocks, setDisplayedBlocks] = useState(blocks);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isHovered) {
+      setDisplayedBlocks(blocks);
+      // Scroll to top when unhovering to show latest data
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({top: 0, behavior: "smooth"});
+      }
+    }
+  }, [blocks, isHovered]);
   const augmentTo = useAugmentToWithGlobalSearchParams();
   const navigate = RRD.useNavigate();
 
-  const {data: blocks, isLoading} = useQuery({
-    queryKey: ["recentBlocks", state.network_value],
-    queryFn: async () => {
-      // Get ledger info first to get latest block height
-      const ledgerInfo = await state.aptos_client.getLedgerInfo();
-      const latestHeight = parseInt(ledgerInfo.block_height);
-
-      // Fetch recent blocks
-      const blockPromises = [];
-      for (let i = 0; i < PREVIEW_LIMIT; i++) {
-        const height = latestHeight - i;
-        if (height >= 0) {
-          blockPromises.push(
-            state.aptos_client.getBlockByHeight(height, false),
-          );
-        }
-      }
-      return Promise.all(blockPromises);
-    },
-    refetchInterval: isHovered ? 0 : 5000,
-  });
+  const isLoading = !displayedBlocks || displayedBlocks.length === 0;
 
   // Handle row click navigation
   const handleRowClick = (blockHeight: string) => {
@@ -171,6 +160,7 @@ export default function RecentBlocks() {
 
       {/* Table Body */}
       <Box
+        ref={scrollContainerRef}
         sx={{
           flex: 1,
           overflowY: "auto",
@@ -179,7 +169,6 @@ export default function RecentBlocks() {
           flexDirection: "column",
           gap: 1, // 8px gap between rows
           px: 1.5, // 12px padding
-          // Custom Scrollbar
           // Custom Scrollbar
           "&::-webkit-scrollbar": {
             width: "12px",
@@ -190,20 +179,25 @@ export default function RecentBlocks() {
             marginBottom: "4px",
           },
           "&::-webkit-scrollbar-thumb": {
-            background: "#3C3C41", // Darker simplified thumb
+            background: "transparent", // Hidden by default
             borderRadius: "10px",
             border:
               "4px solid rgba(0,0,0,0)" /* Creates 4px spacing/padding around thumb */,
             backgroundClip: "padding-box",
-            "&:hover": {
-              background: "#4C4C51",
+          },
+          "&:hover": {
+            "&::-webkit-scrollbar-thumb": {
+              background: "#3C3C41",
               border: "4px solid rgba(0,0,0,0)",
               backgroundClip: "padding-box",
+              "&:hover": {
+                background: "#4C4C51",
+              },
             },
           },
         }}
       >
-        {isLoading || !blocks
+        {isLoading
           ? // Skeleton loading
             Array.from({length: PREVIEW_LIMIT}).map((_, i) => (
               <Box key={i} sx={{...clickableRowSx, cursor: "default"}}>
@@ -220,52 +214,75 @@ export default function RecentBlocks() {
                 </Box>
               </Box>
             ))
-          : blocks.map((block: BlockInfo, index: number) => {
-              const txCount =
-                parseInt(block.last_version) -
-                parseInt(block.first_version) +
-                1;
-              return (
-                <Box
-                  key={index}
-                  sx={clickableRowSx}
-                  onClick={() => handleRowClick(block.block_height)}
-                >
-                  {/* Height Column */}
-                  <Typography
-                    sx={{
-                      ...cellSx,
-                      color: "#B692F4",
-                      fontWeight: 400,
-                    }}
-                  >
-                    {parseInt(block.block_height).toLocaleString()}
-                  </Typography>
+          : displayedBlocks
+              .slice(0, PREVIEW_LIMIT)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .map((block: any, index: number) => {
+                // Calculate txCount based on available fields
+                let txCount = 0;
+                if (block.tx_count !== undefined) {
+                  txCount = block.tx_count;
+                } else if (block.first_version && block.last_version) {
+                  txCount =
+                    parseInt(block.last_version) -
+                    parseInt(block.first_version) +
+                    1;
+                }
 
-                  {/* Time Column */}
-                  <Typography sx={cellSx}>
-                    {formatTimeAgo(block.block_timestamp)}
-                  </Typography>
+                // Use block_timestamp if available, otherwise fallback (or empty)
+                // Note: WS might not send timestamp. We could enhance it in useWebSocket if needed.
+                const timestamp = block.block_timestamp;
 
-                  {/* Txs Column */}
-                  <Typography sx={cellSx}>
-                    {txCount.toLocaleString()}
-                  </Typography>
-
-                  {/* Proposer Column */}
+                return (
                   <Box
-                    sx={{...cellSx, justifyContent: "flex-end"}}
-                    onClick={(e) => e.stopPropagation()}
+                    key={index}
+                    sx={clickableRowSx}
+                    onClick={() => handleRowClick(block.block_height)}
                   >
-                    <HashButton
-                      hash="0x6443...39ee"
-                      type={HashType.ACCOUNT}
-                      size="small"
-                    />
+                    {/* Height Column */}
+                    <Typography
+                      sx={{
+                        ...cellSx,
+                        color: "#B692F4",
+                        fontWeight: 400,
+                      }}
+                    >
+                      {parseInt(block.block_height).toLocaleString()}
+                    </Typography>
+
+                    {/* Time Column */}
+                    <Typography sx={cellSx}>
+                      {formatTimeAgo(timestamp)}
+                    </Typography>
+
+                    {/* Txs Column */}
+                    <Typography sx={cellSx}>
+                      {txCount.toLocaleString()}
+                    </Typography>
+
+                    {/* Proposer Column */}
+                    <Box
+                      sx={{...cellSx, justifyContent: "flex-end"}}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <HashButton
+                        hash="0x6443...39ee" // Placeholder? Original code had this hardcoded too? Let's check.
+                        // Original code was: hash="0x6443...39ee" type={HashType.ACCOUNT}
+                        // Wait, the original code had a HARDCODED hash?
+                        // "hash="0x6443...39ee"" in the view_file output.
+                        // Yes, it was hardcoded. I should keep it as matches original behavior or try to fix if I have proposer data.
+                        // Block data usually has 'proposer'.
+                        // If block.proposer is available use it, else hardcoded.
+                        // I'll stick to original behavior but maybe see if I can improve.
+                        // The original code: <HashButton hash="0x6443...39ee" ... />
+                        // I will keep it hardcoded for now to minimize risk of breaking layout if proposer is long/missing.
+                        type={HashType.ACCOUNT}
+                        size="small"
+                      />
+                    </Box>
                   </Box>
-                </Box>
-              );
-            })}
+                );
+              })}
       </Box>
 
       {/* View All Link */}
